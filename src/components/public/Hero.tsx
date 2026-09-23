@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { siteData } from "@/data/siteData";
 
@@ -17,7 +18,7 @@ export const Hero: React.FC = () => {
       <div className="absolute -bottom-20 left-10 h-80 w-80 rounded-full bg-tvl-orange/5 blur-[100px] pointer-events-none" />
 
       <div className="mx-auto w-full max-w-[74rem] px-5 sm:px-8 lg:px-10 relative z-10 flex min-h-[72svh] items-center">
-        <div className="max-w-[48rem] lg:max-w-[46rem]">
+        <div className="max-w-[56rem] lg:max-w-[54rem]">
           {/* Eyebrow & Live Status */}
           <div className="hero-rise hero-rise-1 mb-7 flex flex-wrap items-center gap-x-4 gap-y-2">
             <span className="readout readout-caps text-tide">
@@ -37,13 +38,26 @@ export const Hero: React.FC = () => {
             </span>
           </div>
 
+          {/* Official Virtus Hero Banner Graphic */}
+          <div className="hero-rise hero-rise-2 mb-8 -ml-1 sm:-ml-2 max-w-[28rem] sm:max-w-[34rem] lg:max-w-[40rem]">
+            <Image
+              src="/hero-banner-tight.png"
+              alt="Virtus - One Team"
+              width={804}
+              height={327}
+              priority
+              className="w-full h-auto object-contain filter drop-shadow-[0_8px_24px_rgba(249,210,34,0.18)]"
+            />
+            <h1 className="sr-only">Virtus — One Team. Where brand, technology, and content move together.</h1>
+          </div>
+
           {/* Main Headline */}
-          <h1 className="hero-rise hero-rise-2 font-display text-[clamp(2.3rem,4.5vw,4.6rem)] font-bold leading-[1.08] tracking-tight text-seaglass">
+          <h2 className="hero-rise hero-rise-2 font-display text-[clamp(1.7rem,3.2vw,2.6rem)] font-bold leading-[1.12] tracking-tight text-seaglass">
             Where brand, technology, and content move together.
-          </h1>
+          </h2>
 
           {/* Subtitle */}
-          <p className="hero-rise hero-rise-3 mt-6 max-w-[50ch] text-base leading-relaxed text-tide sm:mt-7 sm:text-lg">
+          <p className="hero-rise hero-rise-3 mt-5 max-w-[52ch] text-base leading-relaxed text-tide sm:text-lg">
             {siteData.hero.body}
           </p>
 
