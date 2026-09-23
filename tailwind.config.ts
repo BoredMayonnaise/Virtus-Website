@@ -31,7 +31,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["var(--font-fraunces)", "Georgia", "serif"],
+        display: ["var(--font-monument)", "var(--font-display)", "sans-serif"],
         monument: ["var(--font-monument)", "sans-serif"],
         sans: ["var(--font-plex-sans)", "system-ui", "sans-serif"],
         mono: ["var(--font-plex-mono)", "monospace"],

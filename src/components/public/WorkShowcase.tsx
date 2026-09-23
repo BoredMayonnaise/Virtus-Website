@@ -25,7 +25,7 @@ export const WorkShowcase: React.FC = () => {
             <span className="readout readout-caps text-tvl-amber font-mono">Portfolio</span>
             <h2
               id="work-title"
-              className="mt-3 font-display text-[clamp(2.5rem,5vw,5rem)] leading-[0.94] tracking-[-0.035em] text-seaglass"
+              className="mt-3 font-display text-[clamp(2.2rem,4.5vw,4.2rem)] font-bold leading-[1.08] tracking-tight text-seaglass"
             >
               {siteData.work.title}
             </h2>

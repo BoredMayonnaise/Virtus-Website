@@ -1,14 +1,40 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Syne:wght@700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
+
+/* Official Brand Kit Typography: Monument Extended */
+@font-face {
+  font-family: 'Monument Extended';
+  src: url('/fonts/MonumentExtended-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Monument Extended';
+  src: url('/fonts/MonumentExtended-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Monument Extended';
+  src: url('/fonts/MonumentExtended-Black.ttf') format('truetype');
+  font-weight: 800;
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-plex-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-plex-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-fraunces: "Fraunces", Georgia, "Times New Roman", serif;
-  --font-monument: "Syne", "Monument Extended", ui-sans-serif, sans-serif;
+  --font-monument: "Monument Extended", "Syne", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: "Monument Extended", "Syne", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-plex-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-plex-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   --color-abyss: #0f1b2a;
   --color-abyss-2: #1c2639;
@@ -27,8 +53,8 @@
   --tvl-ochre: #854d27;
   --tvl-champagne: #e7e393;
 
-  --text-display: clamp(3rem, 1.6rem + 5.8vw, 6.9rem);
-  --text-h2: clamp(2.2rem, 1.45rem + 2.7vw, 3.7rem);
+  --text-display: clamp(2.4rem, 1.4rem + 4vw, 5.2rem);
+  --text-h2: clamp(1.8rem, 1.2rem + 2vw, 3.2rem);
 }
 
 html {
@@ -68,9 +94,7 @@ body {
 /* Monument Brand Typography */
 .font-monument {
   font-family: var(--font-monument);
-  text-transform: uppercase;
-  letter-spacing: -0.025em;
-  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 /* Hero Rise Keyframes */

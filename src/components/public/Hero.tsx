@@ -38,7 +38,7 @@ export const Hero: React.FC = () => {
           </div>
 
           {/* Main Headline */}
-          <h1 className="hero-rise hero-rise-2 font-display text-[clamp(2.7rem,5vw,5.5rem)] leading-[0.96] tracking-[-0.035em] text-seaglass">
+          <h1 className="hero-rise hero-rise-2 font-display text-[clamp(2.3rem,4.5vw,4.6rem)] font-bold leading-[1.08] tracking-tight text-seaglass">
             Where brand, technology, and content move together.
           </h1>
 

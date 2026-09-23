@@ -12,11 +12,11 @@ export const FinalCTA: React.FC = () => {
           </span>
           <span aria-hidden="true" className="mt-5 block h-px w-24 bg-deep-2/45" />
 
-          <p className="mt-6 max-w-[14ch] font-display text-[clamp(2.8rem,7vw,6.5rem)] leading-[0.94] tracking-[-0.035em] text-abyss font-bold">
+          <p className="mt-6 max-w-[14ch] font-display text-[clamp(2.4rem,6vw,5.5rem)] leading-[1.05] tracking-tight text-abyss font-bold">
             {siteData.finalCta.line}
           </p>
 
-          <p className="mt-3 font-display text-[clamp(2rem,4vw,4.2rem)] italic leading-[1] text-tvl-ochre">
+          <p className="mt-3 font-display text-[clamp(1.6rem,3.5vw,3.2rem)] font-normal leading-[1.1] text-tvl-ochre">
             {siteData.finalCta.subline}
           </p>
 
