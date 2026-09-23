@@ -21,6 +21,7 @@ import { OperationsOS } from "@/components/dashboard/OperationsOS";
 export default function Home() {
   const [isPortalModalOpen, setIsPortalModalOpen] = useState(false);
   const [activePortalRole, setActivePortalRole] = useState<PortalRole | null>(null);
+  const [selectedTier, setSelectedTier] = useState<"Focused" | "Growth" | "Integrated">("Growth");
 
   // Scroll reveal observer
   useEffect(() => {
@@ -74,8 +75,17 @@ export default function Home() {
         <Products />
         <WhyUs />
         <Process />
-        <Engagements />
-        <BriefBuilder />
+        <Engagements
+          onSelectTier={(tier) => {
+            setSelectedTier(tier as "Focused" | "Growth" | "Integrated");
+            const briefElement = document.getElementById("brief");
+            briefElement?.scrollIntoView({ behavior: "smooth" });
+          }}
+        />
+        <BriefBuilder
+          selectedTier={selectedTier}
+          onSelectTier={(tier) => setSelectedTier(tier)}
+        />
         <FAQ />
         <FinalCTA />
       </main>

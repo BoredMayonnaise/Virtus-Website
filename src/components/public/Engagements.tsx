@@ -59,12 +59,31 @@ export const Engagements: React.FC<EngagementsProps> = ({ onSelectTier }) => {
                 </ul>
               </div>
 
+              <div className="mt-6 pt-4 border-t border-shelf/30 flex items-center justify-between font-mono text-xs">
+                <span className="text-tide/75">
+                  {model.name === "Focused"
+                    ? "2 – 3 weeks"
+                    : model.name === "Growth"
+                    ? "4 – 6 weeks"
+                    : "6 – 8 weeks"}
+                </span>
+                <span className="text-tvl-amber font-bold">
+                  {model.name === "Focused"
+                    ? "From $1,800"
+                    : model.name === "Growth"
+                    ? "From $4,200"
+                    : "From $8,500"}
+                </span>
+              </div>
+
               <Link
                 href="#brief"
-                onClick={() => onSelectTier?.(model.name)}
-                className="group mt-8 inline-flex items-center gap-2 text-sm font-semibold text-tvl-amber hover:text-white transition-colors"
+                onClick={(e) => {
+                  onSelectTier?.(model.name);
+                }}
+                className="group mt-6 inline-flex items-center justify-between rounded-full border border-tvl-amber/40 bg-tvl-amber/10 px-4 py-2.5 text-xs font-mono font-bold text-tvl-amber hover:border-tvl-amber hover:bg-tvl-amber hover:text-tvl-plum-dark transition-all duration-200"
               >
-                Choose {model.name}
+                <span>Select {model.name}</span>
                 <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-1">
                   →
                 </span>

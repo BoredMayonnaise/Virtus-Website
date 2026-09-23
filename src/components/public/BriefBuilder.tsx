@@ -6,16 +6,59 @@ import { calculateAgencyQuote, QuoteResult } from "@/lib/quotationEngine";
 
 interface BriefBuilderProps {
   onBriefSubmitted?: () => void;
+  selectedTier?: "Focused" | "Growth" | "Integrated";
+  onSelectTier?: (tier: "Focused" | "Growth" | "Integrated") => void;
 }
 
-export const BriefBuilder: React.FC<BriefBuilderProps> = ({ onBriefSubmitted }) => {
+export const BriefBuilder: React.FC<BriefBuilderProps> = ({
+  onBriefSubmitted,
+  selectedTier = "Growth",
+  onSelectTier,
+}) => {
+  const [tier, setTier] = useState<"Focused" | "Growth" | "Integrated">(selectedTier);
+
   const [selections, setSelections] = useState<Record<string, string[]>>({
     need: ["Brand & Creative", "Web & Digital"],
     state: ["Starting fresh"],
     feel: ["Calm & precise", "Bold & confident"],
-    when: ["In a few weeks"],
+    when: ["One to two months"],
     budget: ["$3k – $7k"],
   });
+
+  // Keep internal tier in sync with prop changes (e.g. from Engagements section click)
+  React.useEffect(() => {
+    if (selectedTier && selectedTier !== tier) {
+      applyTier(selectedTier);
+    }
+  }, [selectedTier]);
+
+  const applyTier = (newTier: "Focused" | "Growth" | "Integrated") => {
+    setTier(newTier);
+    onSelectTier?.(newTier);
+
+    if (newTier === "Focused") {
+      setSelections((prev) => ({
+        ...prev,
+        need: prev.need?.length ? [prev.need[0]] : ["Web & Digital"],
+        when: ["In a few weeks"],
+        budget: ["$1k – $3k"],
+      }));
+    } else if (newTier === "Growth") {
+      setSelections((prev) => ({
+        ...prev,
+        need: ["Brand & Creative", "Web & Digital"],
+        when: ["One to two months"],
+        budget: ["$3k – $7k"],
+      }));
+    } else if (newTier === "Integrated") {
+      setSelections((prev) => ({
+        ...prev,
+        need: ["Brand & Creative", "Web & Digital", "Content & Video", "AI & Automation"],
+        when: ["One to two months"],
+        budget: ["$7k+"],
+      }));
+    }
+  };
 
   const [contact, setContact] = useState({
     name: "",
@@ -28,16 +71,17 @@ export const BriefBuilder: React.FC<BriefBuilderProps> = ({ onBriefSubmitted }) 
   const [success, setSuccess] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Dynamic Auto-Quote Calculation
+  // Dynamic Auto-Quote Calculation with Tier
   const quote: QuoteResult = useMemo(() => {
     return calculateAgencyQuote({
+      tier,
       needs: selections.need,
       state: selections.state?.[0],
       feel: selections.feel,
       when: selections.when?.[0],
       budget: selections.budget?.[0],
     });
-  }, [selections]);
+  }, [tier, selections]);
 
   const handleToggleOption = (stepId: string, option: string, isMulti: boolean) => {
     setSelections((prev) => {
@@ -136,6 +180,78 @@ export const BriefBuilder: React.FC<BriefBuilderProps> = ({ onBriefSubmitted }) 
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_24rem] lg:gap-16">
           {/* Main Questionnaire & Form */}
           <form id="brief-submission-form" onSubmit={handleSubmit} className="flex flex-col gap-10">
+            {/* Step 00: Engagement Model Tier */}
+            <div data-reveal="true" className="border-t border-shelf/50 pt-6">
+              <div className="flex w-full flex-wrap items-baseline gap-x-3 gap-y-1 mb-4">
+                <span className="readout mr-1 text-[0.72rem] text-tvl-amber font-mono font-bold">
+                  MODEL
+                </span>
+                <span className="font-sans text-lg font-semibold text-seaglass sm:text-xl">
+                  Engagement Model
+                </span>
+                <span className="readout text-[0.68rem] text-tide/70">
+                  Select your project structure
+                </span>
+                <span className="readout ml-auto text-[0.66rem] text-tvl-amber font-mono font-bold">
+                  ✓ {tier} tier active
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  {
+                    name: "Focused" as const,
+                    summary: "One clear problem · One defined outcome",
+                    timeline: "2 – 3 weeks",
+                    range: "$1.8k – $3.2k",
+                    icon: "🎯",
+                  },
+                  {
+                    name: "Growth" as const,
+                    summary: "Connected multi-discipline system",
+                    timeline: "4 – 6 weeks",
+                    range: "$4.2k – $7.5k",
+                    icon: "🚀",
+                  },
+                  {
+                    name: "Integrated" as const,
+                    summary: "All disciplines · Dedicated Pod Lead",
+                    timeline: "6 – 8 weeks",
+                    range: "$8.5k – $14k+",
+                    icon: "⚡",
+                  },
+                ].map((item) => {
+                  const isActive = tier === item.name;
+                  return (
+                    <button
+                      key={item.name}
+                      type="button"
+                      onClick={() => applyTier(item.name)}
+                      className={`text-left p-4 rounded-xl border transition-all duration-200 ${
+                        isActive
+                          ? "border-tvl-amber bg-tvl-amber/15 shadow-lg shadow-tvl-amber/10 ring-1 ring-tvl-amber"
+                          : "border-shelf/60 bg-abyss-2/60 hover:border-tvl-amber/50 hover:bg-shelf/20"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="font-monument text-sm font-bold tracking-tight text-seaglass">
+                          {item.name}
+                        </span>
+                        <span className="text-xs">{item.icon}</span>
+                      </div>
+                      <p className="text-xs text-tide line-clamp-2 leading-relaxed">
+                        {item.summary}
+                      </p>
+                      <div className="mt-3 flex items-center justify-between pt-2 border-t border-shelf/30 font-mono text-[0.65rem]">
+                        <span className="text-tide/70">{item.timeline}</span>
+                        <span className="text-tvl-amber font-bold">{item.range}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {siteData.brief.steps.map((step, idx) => {
               const currentValues = selections[step.id] || [];
               const isAnswered = currentValues.length > 0;
@@ -272,7 +388,7 @@ export const BriefBuilder: React.FC<BriefBuilderProps> = ({ onBriefSubmitted }) 
                       Auto-Quotation Preview
                     </span>
                     <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-tvl-amber/20 text-tvl-amber border border-tvl-amber/30">
-                      {quote.recommendedTier}
+                      {quote.recommendedTier} Tier
                     </span>
                   </div>
 
@@ -288,16 +404,31 @@ export const BriefBuilder: React.FC<BriefBuilderProps> = ({ onBriefSubmitted }) 
                   {/* Deliverables snippet */}
                   <div className="mt-3 pt-3 border-t border-shelf/30">
                     <span className="text-[0.65rem] font-mono uppercase text-tide/70 block mb-1.5">
-                      Included Scope:
+                      Included Scope ({quote.recommendedTier}):
                     </span>
                     <ul className="space-y-1 text-xs text-seaglass/90">
-                      {quote.deliverables.slice(0, 3).map((item) => (
+                      {quote.deliverables.slice(0, 4).map((item) => (
                         <li key={item} className="flex items-center gap-1.5 truncate">
                           <span className="h-1 w-1 rounded-full bg-tvl-amber shrink-0" />
                           <span className="truncate">{item}</span>
                         </li>
                       ))}
                     </ul>
+                  </div>
+
+                  {/* Payment Milestone Structure */}
+                  <div className="mt-3 pt-3 border-t border-shelf/30">
+                    <span className="text-[0.65rem] font-mono uppercase text-tide/70 block mb-1.5">
+                      Milestone Schedule:
+                    </span>
+                    <div className="space-y-1 font-mono text-[0.7rem]">
+                      {quote.paymentMilestones.map((m) => (
+                        <div key={m.label} className="flex items-center justify-between text-tide">
+                          <span>{m.percentage}% {m.label.split(" ")[0]}</span>
+                          <span className="text-seaglass font-bold">${m.amount.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>

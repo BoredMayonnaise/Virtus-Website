@@ -1,4 +1,5 @@
 export interface QuoteInput {
+  tier?: "Focused" | "Growth" | "Integrated";
   needs?: string[];
   state?: string;
   feel?: string[];
@@ -68,6 +69,18 @@ const DISCIPLINE_PRICING: Record<string, { baseMin: number; baseMax: number; del
 export function calculateAgencyQuote(input: QuoteInput): QuoteResult {
   const needs = input.needs && input.needs.length > 0 ? input.needs : ["Brand & Creative"];
   
+  // Determine effective tier: use explicitly selected tier or deduce from scope
+  let tier: "Focused" | "Growth" | "Integrated" = input.tier || "Growth";
+  if (!input.tier) {
+    if (needs.length >= 3) {
+      tier = "Integrated";
+    } else if (needs.length === 2) {
+      tier = "Growth";
+    } else {
+      tier = "Focused";
+    }
+  }
+
   let rawMin = 0;
   let rawMax = 0;
   const allDeliverables: string[] = [];
@@ -80,10 +93,35 @@ export function calculateAgencyQuote(input: QuoteInput): QuoteResult {
     };
     rawMin += pricing.baseMin;
     rawMax += pricing.baseMax;
-    allDeliverables.push(...pricing.deliverables);
+    
+    if (tier === "Focused") {
+      // Focused gets top 2 essential deliverables per discipline
+      allDeliverables.push(...pricing.deliverables.slice(0, 2));
+    } else {
+      allDeliverables.push(...pricing.deliverables);
+    }
   });
 
-  // Bundle discount for multi-discipline
+  // Tier-based scope multiplier and turnaround
+  let tierMultiplier = 1.0;
+  let weeks = "3 – 5 weeks";
+
+  if (tier === "Focused") {
+    tierMultiplier = 0.78;
+    weeks = "2 – 3 weeks (Focused Sprint)";
+  } else if (tier === "Growth") {
+    tierMultiplier = 1.0;
+    weeks = "4 – 6 weeks (Growth System)";
+  } else if (tier === "Integrated") {
+    tierMultiplier = 1.42;
+    weeks = "6 – 8 weeks (Full Studio Pod)";
+    allDeliverables.push(
+      "Dedicated Studio Pod Lead & Weekly Syncs",
+      "Cross-Discipline System Integration & Architecture"
+    );
+  }
+
+  // Multi-discipline bundle efficiency discounts
   if (needs.length === 2) {
     rawMin *= 0.9;
     rawMax *= 0.9;
@@ -98,32 +136,22 @@ export function calculateAgencyQuote(input: QuoteInput): QuoteResult {
   // State multiplier
   let stateMultiplier = 1.0;
   if (input.state === "Improving what exists") {
-    stateMultiplier = 0.88;
+    stateMultiplier = 0.9;
   } else if (input.state === "Fixing something that is not working") {
-    stateMultiplier = 1.2;
+    stateMultiplier = 1.18;
   }
 
   // Urgency multiplier
   let urgencyMultiplier = 1.0;
-  let weeks = "4 – 6 weeks";
   if (input.when === "In a few weeks") {
-    urgencyMultiplier = 1.25;
-    weeks = "2 – 3 weeks (Expedited)";
+    urgencyMultiplier = 1.2;
+    if (tier !== "Focused") weeks = "2 – 3 weeks (Expedited)";
   } else if (input.when === "Flexible") {
     urgencyMultiplier = 0.95;
-    weeks = "6 – 8 weeks";
   }
 
-  const finalMin = Math.round((rawMin * stateMultiplier * urgencyMultiplier) / 50) * 50;
-  const finalMax = Math.round((rawMax * stateMultiplier * urgencyMultiplier) / 50) * 50;
-
-  // Determine recommended tier
-  let recommendedTier: "Focused" | "Growth" | "Integrated" = "Focused";
-  if (needs.length >= 3 || finalMin > 6000) {
-    recommendedTier = "Integrated";
-  } else if (needs.length >= 2 || finalMin > 3500) {
-    recommendedTier = "Growth";
-  }
+  const finalMin = Math.round((rawMin * tierMultiplier * stateMultiplier * urgencyMultiplier) / 50) * 50;
+  const finalMax = Math.round((rawMax * tierMultiplier * stateMultiplier * urgencyMultiplier) / 50) * 50;
 
   const avgPrice = (finalMin + finalMax) / 2;
   const paymentMilestones: PaymentMilestone[] = [
@@ -138,7 +166,7 @@ export function calculateAgencyQuote(input: QuoteInput): QuoteResult {
       amount: Math.round(avgPrice * 0.25),
     },
     {
-      label: "Final QA & Asset Handoff",
+      label: "Final QA & Production Handoff",
       percentage: 25,
       amount: Math.round(avgPrice * 0.25),
     },
@@ -147,10 +175,10 @@ export function calculateAgencyQuote(input: QuoteInput): QuoteResult {
   return {
     minPrice: finalMin,
     maxPrice: finalMax,
-    recommendedTier,
+    recommendedTier: tier,
     estimatedWeeks: weeks,
     deliverables: allDeliverables,
     paymentMilestones,
-    breakdown: `${needs.length} Discipline(s) (${needs.join(", ")}) · ${recommendedTier} Tier · ${weeks}`,
+    breakdown: `${needs.length} Discipline(s) (${needs.join(", ")}) · ${tier} Engagement · ${weeks}`,
   };
 }
