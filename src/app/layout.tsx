@@ -16,6 +16,11 @@ export const metadata: Metadata = {
     description: "Brand, web, content and automation under one coordinated team.",
     type: "website",
   },
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({
