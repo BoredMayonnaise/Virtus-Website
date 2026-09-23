@@ -11,27 +11,10 @@ export const metadata: Metadata = {
   description:
     "The Virtus Labs brings brand, web, content and automation under one coordinated digital studio.",
   applicationName: "The Virtus Labs",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://virtuswebsite.vercel.app"),
   openGraph: {
     title: "The Virtus Labs — Where brand, technology, and content move together.",
     description: "Brand, web, content and automation under one coordinated team.",
     type: "website",
-    url: "https://virtuswebsite.vercel.app",
-    siteName: "The Virtus Labs",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1024,
-        height: 576,
-        alt: "The Virtus Labs — One Team Official Studio Banner",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "The Virtus Labs — Where brand, technology, and content move together.",
-    description: "Brand, web, content and automation under one coordinated team.",
-    images: ["/opengraph-image.png"],
   },
   icons: {
     icon: "/icon.png",
