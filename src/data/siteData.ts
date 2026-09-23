@@ -527,6 +527,15 @@ export const siteData = {
           { label: "Admin Operations ↗", href: "/admin" },
         ],
       },
+      {
+        title: "Connect",
+        links: [
+          { label: "Start your brief ↗", href: "#brief" },
+          { label: "hello@thevirtuslabs.com", href: "mailto:hello@thevirtuslabs.com" },
+          { label: "Book consultation ↗", href: "#brief" },
+          { label: "Manila · UTC+8", href: "#footer" },
+        ],
+      },
     ],
   },
 };
