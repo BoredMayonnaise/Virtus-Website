@@ -51,14 +51,13 @@ export const Nav: React.FC<NavProps> = ({ onOpenPortal }) => {
           ))}
 
           {/* Portal Access Doorway Button */}
-          <button
-            type="button"
-            onClick={onOpenPortal}
+          <Link
+            href="/portal"
             className="group inline-flex items-center gap-2 rounded-full border border-tvl-amber/40 bg-tvl-amber/10 px-4 py-1.5 text-xs font-mono font-semibold tracking-wider text-tvl-amber transition-all duration-200 hover:border-tvl-amber hover:bg-tvl-amber hover:text-tvl-plum-dark"
           >
             <span className="h-1.5 w-1.5 rounded-full bg-tvl-amber animate-pulse group-hover:bg-tvl-plum-dark"></span>
             PORTAL ACCESS
-          </button>
+          </Link>
 
           <Link
             href="#brief"
@@ -70,13 +69,12 @@ export const Nav: React.FC<NavProps> = ({ onOpenPortal }) => {
 
         {/* Mobile Hamburger Button */}
         <div className="flex items-center gap-3 lg:hidden">
-          <button
-            type="button"
-            onClick={onOpenPortal}
+          <Link
+            href="/portal"
             className="rounded-full border border-tvl-amber/60 bg-tvl-amber/15 px-3 py-1 text-[0.65rem] font-mono font-semibold uppercase text-tvl-amber"
           >
             Portal
-          </button>
+          </Link>
 
           <button
             type="button"

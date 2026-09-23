@@ -518,6 +518,15 @@ export const siteData = {
           { label: "Build your brief", href: "#brief" },
         ],
       },
+      {
+        title: "Workspaces",
+        links: [
+          { label: "Portal Gateway ↗", href: "/portal" },
+          { label: "Client Room ↗", href: "/client" },
+          { label: "Team Sprint Floor ↗", href: "/team" },
+          { label: "Admin Operations ↗", href: "/admin" },
+        ],
+      },
     ],
   },
 };

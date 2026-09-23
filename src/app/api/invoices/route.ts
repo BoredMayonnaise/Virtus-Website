@@ -8,7 +8,7 @@ export async function GET() {
       const sql = getNeonSql();
       if (sql) {
         const rows = await sql`
-          SELECT id, invoice_number as "invoiceNumber", client_id as "clientId", client_name as "clientName", company, amount, status, due_date as "dueDate", paid_at as "paidAt", created_at as "createdAt"
+          SELECT id, invoice_number as "invoiceNumber", client_id as "clientId", client_name as "clientName", amount, status, due_date as "dueDate", paid_at as "paidAt", created_at as "createdAt"
           FROM invoices
           ORDER BY created_at DESC;
         `;
@@ -46,8 +46,8 @@ export async function POST(request: Request) {
         const sql = getNeonSql();
         if (sql) {
           await sql`
-            INSERT INTO invoices (id, invoice_number, client_id, client_name, company, amount, status, due_date)
-            VALUES (${newInvoice.id}, ${newInvoice.invoiceNumber}, ${newInvoice.clientId}, ${newInvoice.clientName}, ${newInvoice.company}, ${newInvoice.amount}, ${newInvoice.status}, ${newInvoice.dueDate})
+            INSERT INTO invoices (id, invoice_number, client_id, client_name, amount, status, due_date)
+            VALUES (${newInvoice.id}, ${newInvoice.invoiceNumber}, ${newInvoice.clientId}, ${newInvoice.clientName}, ${newInvoice.amount}, ${newInvoice.status}, ${newInvoice.dueDate})
             ON CONFLICT (id) DO NOTHING;
           `;
         }
