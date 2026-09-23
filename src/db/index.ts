@@ -71,6 +71,7 @@ export interface Invoice {
   id: string;
   clientId: string;
   clientName: string;
+  company?: string;
   invoiceNumber: string;
   amount: number;
   status: "Paid" | "Pending" | "Overdue";
