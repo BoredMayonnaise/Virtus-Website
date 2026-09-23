@@ -1,0 +1,316 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Syne:wght@700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-plex-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-plex-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-fraunces: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-monument: "Syne", "Monument Extended", ui-sans-serif, sans-serif;
+
+  --color-abyss: #0f1b2a;
+  --color-abyss-2: #1c2639;
+  --color-deep: #1c2639;
+  --color-deep-2: #435a76;
+  --color-shelf: #435a76;
+  --color-tide: #798da8;
+  --color-seaglass: #e0e1dc;
+  --color-brass: #e0e1dc;
+
+  /* The Virtus Labs Specific Brand Colors */
+  --tvl-plum: #2e1f27;
+  --tvl-plum-dark: #1f141a;
+  --tvl-amber: #f4c05d;
+  --tvl-orange: #dd7230;
+  --tvl-ochre: #854d27;
+  --tvl-champagne: #e7e393;
+
+  --text-display: clamp(3rem, 1.6rem + 5.8vw, 6.9rem);
+  --text-h2: clamp(2.2rem, 1.45rem + 2.7vw, 3.7rem);
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-abyss);
+  color: var(--color-seaglass);
+  font-family: var(--font-plex-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(121, 141, 168, 0.35);
+  color: var(--color-seaglass);
+}
+
+/* Readouts */
+.readout {
+  font-family: var(--font-plex-mono);
+  letter-spacing: 0.06em;
+  color: var(--color-tide);
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.readout-caps {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.66rem;
+}
+
+/* Monument Brand Typography */
+.font-monument {
+  font-family: var(--font-monument);
+  text-transform: uppercase;
+  letter-spacing: -0.025em;
+  font-weight: 800;
+}
+
+/* Hero Rise Keyframes */
+@keyframes hero-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(1.2rem);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-rise {
+  opacity: 0;
+  animation: 0.82s cubic-bezier(0.22, 1, 0.36, 1) forwards hero-rise;
+}
+.hero-rise-1 { animation-delay: 0.1s; }
+.hero-rise-2 { animation-delay: 0.2s; }
+.hero-rise-3 { animation-delay: 0.32s; }
+.hero-rise-4 { animation-delay: 0.44s; }
+
+/* Data Reveal on Scroll */
+[data-reveal] {
+  opacity: 0;
+  will-change: opacity, transform;
+  transition: opacity 0.58s cubic-bezier(0.16, 1, 0.3, 1), transform 0.58s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(14px);
+}
+[data-reveal].is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Discipline Marquee */
+.discipline-marquee {
+  border-bottom: 1px solid rgba(67, 90, 118, 0.55);
+  background: rgba(15, 27, 42, 0.96);
+  overflow: hidden;
+}
+
+.discipline-marquee__track {
+  display: flex;
+  width: max-content;
+  animation: discipline-loop 24s linear infinite;
+}
+
+@keyframes discipline-loop {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+.discipline-marquee__group {
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+
+.discipline-marquee__item {
+  display: inline-flex;
+  align-items: center;
+  padding: 1.1rem 1.75rem;
+  font-family: var(--font-plex-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-tide);
+}
+
+.discipline-marquee__diamond {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-left: 1.75rem;
+  background-color: var(--color-shelf);
+  transform: rotate(45deg);
+}
+
+/* Work Showcase 3D Cards */
+.work-showcase {
+  position: relative;
+}
+
+.work-showcase__card {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s ease;
+  transform: translate3d(var(--work-x, 0px), var(--work-y, 0px), var(--work-z, 0px)) scale(var(--work-scale, 1));
+}
+
+.work-showcase__media {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(67, 90, 118, 0.45);
+}
+
+.work-showcase__image-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 27, 42, 0.15) 0%, rgba(15, 27, 42, 0.85) 100%);
+  pointer-events: none;
+}
+
+.work-showcase__title-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem;
+  z-index: 10;
+}
+
+/* Service Row */
+.premium-service-row {
+  transition: background-color 0.32s, border-color 0.32s;
+}
+.premium-service-row__edge {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--tvl-amber);
+  transform-origin: top;
+  transform: scaleY(0);
+  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.premium-service-row:hover .premium-service-row__edge {
+  transform: scaleY(1);
+}
+
+/* Product Family */
+.premium-product-family {
+  transition: background-color 0.32s, border-color 0.32s;
+}
+.premium-product-family:hover .premium-product-family__arrow {
+  transform: translateX(4px);
+}
+.premium-product-family__arrow {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+/* Why Row */
+.premium-why-row {
+  transition: background-color 0.32s, border-color 0.32s;
+}
+.premium-why-row__line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--tvl-amber);
+  transition: width 0.46s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.premium-why-row:hover .premium-why-row__line {
+  width: 100%;
+}
+
+/* Process Row */
+.premium-process-row {
+  transition: background-color 0.32s;
+}
+.premium-process-row__progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--tvl-amber);
+  transition: width 0.52s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.premium-process-row:hover .premium-process-row__progress {
+  width: 100%;
+}
+
+/* Engagement Cards */
+.premium-engagement {
+  transition: transform 0.36s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.32s;
+}
+.premium-engagement__wash {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(224, 225, 220, 0.05) 0%, transparent 72%);
+  z-index: -1;
+}
+
+/* Brief Contact Fields */
+.brief-contact-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.brief-contact-field__label {
+  font-family: var(--font-plex-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-tide);
+  font-size: 0.68rem;
+  font-weight: 500;
+}
+.brief-contact-field__control {
+  border: 1px solid rgba(67, 90, 118, 0.7);
+  background: rgba(28, 38, 57, 0.4);
+  color: var(--color-seaglass);
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.brief-contact-field__control:focus {
+  border-color: var(--tvl-amber);
+}
+
+/* FAQ Details Accordion */
+.faq-answer-grid {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.36s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+}
+details[open] .faq-answer-grid {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f1b2a;
+}
+::-webkit-scrollbar-thumb {
+  background: #435a76;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #798da8;
+}

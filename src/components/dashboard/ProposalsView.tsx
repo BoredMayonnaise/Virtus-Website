@@ -1,0 +1,376 @@
+"use client";
+
+import React, { useState } from "react";
+import { db, Proposal } from "@/db";
+
+export const ProposalsView: React.FC = () => {
+  const [proposals, setProposals] = useState<Proposal[]>(() => db.getProposals());
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [viewingProposal, setViewingProposal] = useState<Proposal | null>(null);
+
+  // Form State
+  const [clientCompany, setClientCompany] = useState("Tidewater Coffee");
+  const [clientContact, setClientContact] = useState("Arthur Pendelton");
+  const [title, setTitle] = useState("");
+  const [amount, setAmount] = useState(6500);
+  const [timeline, setTimeline] = useState("4 Weeks Delivery");
+  const [scopeText, setScopeText] = useState("Brand Strategy, Next.js Web Flagship, Content Engine");
+
+  const clients = db.getClients();
+
+  const handleCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title) return;
+
+    const randomNum = Math.floor(100 + Math.random() * 900);
+    const selectedClient = clients.find((c) => c.company === clientCompany) || clients[0];
+
+    db.addProposal({
+      proposalNumber: `PROP-2026-${randomNum}`,
+      clientId: selectedClient ? selectedClient.id : "cli-1",
+      clientName: clientContact,
+      company: clientCompany,
+      title,
+      amount,
+      status: "Sent",
+      validUntil: "2026-10-30",
+      scopeSummary: scopeText.split(",").map((s) => s.trim()),
+      timeline,
+    });
+
+    setProposals(db.getProposals());
+    setIsCreateModalOpen(false);
+    setTitle("");
+  };
+
+  const handleStatusChange = (id: string, status: Proposal["status"]) => {
+    db.updateProposalStatus(id, status);
+    setProposals(db.getProposals());
+    if (viewingProposal && viewingProposal.id === id) {
+      setViewingProposal({ ...viewingProposal, status });
+    }
+  };
+
+  return (
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 text-[#0F1B2A]">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-200 pb-5">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse" />
+            <span className="font-mono text-xs font-bold uppercase tracking-wider text-gray-500">
+              Operations OS • Quote & Proposal Engine
+            </span>
+          </div>
+          <h1 className="font-monument text-2xl sm:text-3xl font-black text-[#0F1B2A] tracking-tight mt-1 uppercase">
+            Proposals & Quotes
+          </h1>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">
+            Build interactive SOW proposals, configure dynamic project tiers, and track client acceptance.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsCreateModalOpen(true)}
+          className="border-2 border-black bg-black text-[#FFE600] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider shadow-xs hover:bg-[#FFE600] hover:text-black transition-colors"
+        >
+          + Create New Proposal
+        </button>
+      </div>
+
+      {/* KPI Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white border border-gray-300 p-4 rounded-lg shadow-2xs">
+          <span className="font-mono text-xs text-gray-500 block mb-1">Active Pipeline Proposals</span>
+          <span className="font-mono text-2xl font-black text-black">{proposals.length}</span>
+        </div>
+        <div className="bg-white border border-gray-300 p-4 rounded-lg shadow-2xs">
+          <span className="font-mono text-xs text-gray-500 block mb-1">Total Proposed Value</span>
+          <span className="font-mono text-2xl font-black text-black">
+            ${proposals.reduce((a, b) => a + b.amount, 0).toLocaleString()}
+          </span>
+        </div>
+        <div className="bg-white border border-gray-300 p-4 rounded-lg shadow-2xs">
+          <span className="font-mono text-xs text-gray-500 block mb-1">Proposal Acceptance Rate</span>
+          <span className="font-mono text-2xl font-black text-emerald-600">67%</span>
+        </div>
+      </div>
+
+      {/* Proposal Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {proposals.map((prop) => (
+          <div
+            key={prop.id}
+            className="border border-gray-300 bg-white rounded-lg p-5 shadow-2xs flex flex-col justify-between hover:border-black transition-colors"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-mono text-xs font-bold text-gray-500">{prop.proposalNumber}</span>
+                <span
+                  className={`font-mono text-[0.65rem] font-bold px-2 py-0.5 rounded uppercase ${
+                    prop.status === "Accepted"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : prop.status === "Sent"
+                      ? "bg-blue-100 text-blue-800"
+                      : prop.status === "Draft"
+                      ? "bg-gray-100 text-gray-700"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {prop.status}
+                </span>
+              </div>
+
+              <h3 className="font-bold text-base text-black mt-1 leading-snug">{prop.title}</h3>
+              <p className="text-xs text-gray-500 font-mono mt-1">
+                {prop.company} • {prop.clientName}
+              </p>
+
+              <div className="mt-4 pt-3 border-t border-gray-100 space-y-2">
+                <div className="flex justify-between font-mono text-xs">
+                  <span className="text-gray-500">Proposed Fee:</span>
+                  <span className="font-black text-black">${prop.amount.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between font-mono text-xs">
+                  <span className="text-gray-500">Estimated Timeline:</span>
+                  <span className="font-bold text-gray-800">{prop.timeline}</span>
+                </div>
+              </div>
+
+              <div className="mt-3">
+                <span className="text-[0.65rem] font-mono uppercase text-gray-400 font-bold block mb-1">
+                  Deliverable Scope:
+                </span>
+                <div className="flex flex-wrap gap-1">
+                  {prop.scopeSummary.map((item, idx) => (
+                    <span
+                      key={idx}
+                      className="text-[0.62rem] font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-700"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 pt-3 border-t border-gray-200 flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => setViewingProposal(prop)}
+                className="flex-1 py-1.5 rounded bg-gray-100 hover:bg-black hover:text-[#FFE600] font-mono text-xs font-bold text-gray-800 transition-colors text-center"
+              >
+                Inspect Proposal →
+              </button>
+
+              <select
+                value={prop.status}
+                onChange={(e) => handleStatusChange(prop.id, e.target.value as Proposal["status"])}
+                className="font-mono text-[0.68rem] border border-gray-300 rounded px-2 py-1 bg-white font-bold"
+              >
+                <option value="Draft">Draft</option>
+                <option value="Sent">Sent</option>
+                <option value="Accepted">Accepted</option>
+                <option value="Declined">Declined</option>
+              </select>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Inspect Proposal Modal */}
+      {viewingProposal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="w-full max-w-2xl rounded-lg border-2 border-black bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs font-bold bg-[#FFE600] text-black px-2 py-0.5 rounded">
+                  {viewingProposal.proposalNumber}
+                </span>
+                <h3 className="font-mono font-black text-lg text-black uppercase">
+                  Statement of Work & Proposal Preview
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingProposal(null)}
+                className="font-mono text-sm font-bold text-gray-500 hover:text-black"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 font-mono text-xs">
+              <div className="p-4 bg-gray-50 rounded border border-gray-200">
+                <span className="text-[0.65rem] text-gray-400 uppercase font-bold block mb-1">Prepared For</span>
+                <h4 className="font-bold text-base text-black">{viewingProposal.company}</h4>
+                <p className="text-gray-600">Contact: {viewingProposal.clientName}</p>
+                <p className="text-gray-600">Valid Until: {viewingProposal.validUntil}</p>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-sm text-black mb-1">Scope of Engagement: {viewingProposal.title}</h4>
+                <ul className="list-disc pl-5 space-y-1 text-gray-700">
+                  {viewingProposal.scopeSummary.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-[#FEFCE8] border border-[#FFE600] rounded">
+                <div>
+                  <span className="text-[0.65rem] text-amber-800 uppercase font-bold block">Fixed Studio Investment</span>
+                  <span className="font-black text-xl text-black">${viewingProposal.amount.toLocaleString()} USD</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[0.65rem] text-amber-800 uppercase font-bold block">Delivery Window</span>
+                  <span className="font-bold text-black">{viewingProposal.timeline}</span>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-gray-200 flex items-center justify-between">
+                <span className="text-[0.7rem] text-gray-500">
+                  Current Status: <strong>{viewingProposal.status}</strong>
+                </span>
+
+                <div className="flex items-center gap-2">
+                  {viewingProposal.status !== "Accepted" && (
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange(viewingProposal.id, "Accepted")}
+                      className="px-4 py-2 bg-emerald-600 text-white font-bold rounded uppercase tracking-wider hover:bg-emerald-700 transition-colors"
+                    >
+                      ✓ Simulate Client Acceptance
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setViewingProposal(null)}
+                    className="px-4 py-2 border border-gray-300 rounded font-bold text-gray-700 hover:bg-gray-100"
+                  >
+                    Close Preview
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Proposal Modal */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="w-full max-w-lg rounded-lg border-2 border-black bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
+              <h3 className="font-mono font-black text-base uppercase text-black">
+                Generate New Proposal
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(false)}
+                className="font-mono text-sm font-bold text-gray-500 hover:text-black"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreate} className="space-y-4 font-mono text-xs">
+              <div>
+                <label className="block text-[0.7rem] font-bold uppercase text-gray-700 mb-1">
+                  Client Account
+                </label>
+                <select
+                  value={clientCompany}
+                  onChange={(e) => {
+                    setClientCompany(e.target.value);
+                    const c = clients.find((item) => item.company === e.target.value);
+                    if (c) setClientContact(c.name);
+                  }}
+                  className="w-full border border-gray-300 rounded p-2 bg-white focus:border-black focus:outline-none"
+                >
+                  {clients.map((c) => (
+                    <option key={c.id} value={c.company}>
+                      {c.company} ({c.name})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[0.7rem] font-bold uppercase text-gray-700 mb-1">
+                  Proposal Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Full-Stack SaaS Prototype & Brand System"
+                  className="w-full border border-gray-300 rounded p-2 focus:border-black focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[0.7rem] font-bold uppercase text-gray-700 mb-1">
+                    Fixed Price ($ USD)
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={amount}
+                    onChange={(e) => setAmount(Number(e.target.value))}
+                    className="w-full border border-gray-300 rounded p-2 focus:border-black focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[0.7rem] font-bold uppercase text-gray-700 mb-1">
+                    Delivery Timeline
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={timeline}
+                    onChange={(e) => setTimeline(e.target.value)}
+                    placeholder="4 Weeks Delivery"
+                    className="w-full border border-gray-300 rounded p-2 focus:border-black focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[0.7rem] font-bold uppercase text-gray-700 mb-1">
+                  Scope Deliverables (comma separated)
+                </label>
+                <textarea
+                  rows={2}
+                  value={scopeText}
+                  onChange={(e) => setScopeText(e.target.value)}
+                  placeholder="Design System, Custom Shopify Build, Klaviyo Setup..."
+                  className="w-full border border-gray-300 rounded p-2 focus:border-black focus:outline-none"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-gray-200 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="px-4 py-2 border border-gray-300 rounded font-bold text-gray-700 hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-black text-[#FFE600] border-2 border-black font-bold uppercase tracking-wider hover:bg-[#FFE600] hover:text-black transition-colors"
+                >
+                  Generate & Send
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
