@@ -7,6 +7,7 @@ const PUBLIC_API = new Set([
   "/api/track",
   "/api/health",
   "/api/brief",
+  "/api/lead",
   "/api/client/login",
   "/api/client/logout",
   "/api/staff/login",

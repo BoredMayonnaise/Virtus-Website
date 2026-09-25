@@ -82,7 +82,7 @@ export const WorkShowcase: React.FC = () => {
       aria-labelledby="work-title"
       className="relative scroll-mt-16 overflow-hidden border-b border-shelf/50 bg-abyss py-16 sm:py-24 lg:py-28"
     >
-      <div className="mx-auto mb-10 grid w-full max-w-[74rem] gap-8 px-5 sm:mb-14 sm:px-8 lg:grid-cols-[1fr_auto] lg:items-end lg:px-10">
+      <div className="mx-auto mb-10 grid w-full max-w-[88rem] gap-8 px-5 sm:mb-14 sm:px-8 lg:grid-cols-[1fr_auto] lg:items-end lg:px-10">
         <SectionHeader eyebrow="Concept work" title={siteData.work.title} titleId="work-title" intro={siteData.work.intro} />
 
         <div className="flex items-center justify-between gap-6 lg:flex-col lg:items-end lg:justify-end">
@@ -194,7 +194,7 @@ export const WorkShowcase: React.FC = () => {
         })}
       </div>
 
-      <div className="mx-auto mt-8 flex w-full max-w-[74rem] gap-2 px-5 sm:px-8 lg:px-10" role="group" aria-label="Choose project">
+      <div className="mx-auto mt-8 flex w-full max-w-[88rem] gap-2 px-5 sm:px-8 lg:px-10" role="group" aria-label="Choose project">
         {projects.map((project, idx) => (
           <button
             key={project.id}

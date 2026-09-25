@@ -9,7 +9,7 @@ interface ProductsProps {
 export const Products: React.FC<ProductsProps> = ({ onOpenInquiry }) => {
   return (
     <section id="products" aria-labelledby="products-title" className="scroll-mt-16 bg-tvl-amber py-16 text-black sm:py-24 lg:py-28">
-      <div className="mx-auto w-full max-w-[74rem] px-5 sm:px-8 lg:px-10">
+      <div className="mx-auto w-full max-w-[88rem] px-5 sm:px-8 lg:px-10">
         <SectionHeader
           tone="light"
           eyebrow={siteData.products.eyebrow}

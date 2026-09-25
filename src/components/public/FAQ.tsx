@@ -9,7 +9,7 @@ interface FAQProps {
 export const FAQ: React.FC<FAQProps> = ({ onOpenInquiry }) => {
   return (
     <section id="faq" aria-labelledby="faq-title" className="scroll-mt-16 bg-white py-16 text-black sm:py-24 lg:py-28">
-      <div className="mx-auto grid w-full max-w-[74rem] gap-12 px-5 sm:px-8 lg:grid-cols-[22rem_1fr] lg:gap-20 lg:px-10">
+      <div className="mx-auto grid w-full max-w-[88rem] gap-12 px-5 sm:px-8 lg:grid-cols-[22rem_1fr] lg:gap-20 lg:px-10">
         <div className="lg:sticky lg:top-28 lg:self-start">
           <SectionHeader tone="light" eyebrow="FAQ" title={siteData.faq.title} titleId="faq-title" />
           <div className="mt-8 border-t-2 border-black pt-6">

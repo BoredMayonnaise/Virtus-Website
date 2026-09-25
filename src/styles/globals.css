@@ -145,19 +145,19 @@ body {
 }
 
 .work-track {
-  padding-inline: max(1.25rem, calc((100% - 74rem) / 2 + 1.25rem));
-  scroll-padding-inline: max(1.25rem, calc((100% - 74rem) / 2 + 1.25rem));
+  padding-inline: max(1.25rem, calc((100% - 88rem) / 2 + 1.25rem));
+  scroll-padding-inline: max(1.25rem, calc((100% - 88rem) / 2 + 1.25rem));
 }
 @media (min-width: 640px) {
   .work-track {
-    padding-inline: max(2rem, calc((100% - 74rem) / 2 + 2rem));
-    scroll-padding-inline: max(2rem, calc((100% - 74rem) / 2 + 2rem));
+    padding-inline: max(2rem, calc((100% - 88rem) / 2 + 2rem));
+    scroll-padding-inline: max(2rem, calc((100% - 88rem) / 2 + 2rem));
   }
 }
 @media (min-width: 1024px) {
   .work-track {
-    padding-inline: max(2.5rem, calc((100% - 74rem) / 2 + 2.5rem));
-    scroll-padding-inline: max(2.5rem, calc((100% - 74rem) / 2 + 2.5rem));
+    padding-inline: max(2.5rem, calc((100% - 88rem) / 2 + 2.5rem));
+    scroll-padding-inline: max(2.5rem, calc((100% - 88rem) / 2 + 2.5rem));
   }
 }
 
@@ -323,4 +323,19 @@ details[open] .faq-answer-grid {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #999999;
+}
+
+.lead-dialog[open] {
+  width: min(100% - 2rem, 28rem);
+  max-height: calc(100dvh - 2rem);
+}
+@media (max-width: 639px) {
+  .lead-dialog[open] {
+    height: auto;
+    width: min(100% - 2rem, 28rem);
+    max-width: calc(100% - 2rem);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lead-dialog[open] { animation: none; }
 }

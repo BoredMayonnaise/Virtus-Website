@@ -1,6 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import { siteData } from "@/data/siteData";
+import { Icon } from "@/components/icons/Icon";
+import { HeroLeadForm } from "./HeroLeadForm";
 
 interface HeroProps {
   onOpenInquiry: () => void;
@@ -14,34 +16,44 @@ export const Hero: React.FC<HeroProps> = ({ onOpenInquiry }) => {
     >
       <div aria-hidden="true" className="absolute bottom-0 left-0 h-1 w-1/2 bg-tvl-amber sm:w-1/3" />
 
-      {/* Approved logo artwork: white + yellow on black. Decorative, never distorted. */}
+      {/* Approved logo artwork: white + yellow on black. Decorative background, never distorted. */}
       <svg
         aria-hidden="true"
         focusable="false"
         viewBox="0 0 100 90"
-        className="pointer-events-none absolute right-[max(2.5rem,calc((100%-74rem)/2+2.5rem))] top-1/2 hidden h-[clamp(16rem,32vw,28rem)] w-auto -translate-y-1/2 lg:block"
+        className="pointer-events-none absolute -right-[18%] top-1/2 h-[clamp(22rem,70vw,44rem)] w-auto -translate-y-1/2 sm:-right-[8%] lg:right-[-2%] lg:h-[92%]"
       >
-        <polygon points="0,0 29.6,0 50.2,59.8 79.6,59.8 69,90 31,90" fill="#FFFFFF" />
-        <polygon points="70.6,0 100,0 82.9,50.2 53.5,50.2" fill="#FBD227" />
+        <defs>
+          <linearGradient id="hero-logo-l" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#000000" />
+            <stop offset="1" stopColor="#666666" />
+          </linearGradient>
+        </defs>
+        <polygon points="0,0 29.6,0 50.2,59.8 79.6,59.8 69,90 31,90" fill="url(#hero-logo-l)" />
+        <polygon points="70.6,0 100,0 82.9,50.2 53.5,50.2" fill="#FBD227" fillOpacity="0.5" />
       </svg>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent"
+      />
 
-      <div className="relative z-10 mx-auto w-full max-w-[74rem] px-5 sm:px-8 lg:px-10">
-        <div className="max-w-[46rem] lg:max-w-[42rem] xl:max-w-[48rem]">
+      <div className="relative z-10 mx-auto w-full max-w-[88rem] px-5 sm:px-8 lg:px-10">
+        <div className="max-w-[46rem] lg:max-w-[64rem] xl:max-w-[72rem]">
           <div className="hero-rise hero-rise-1 mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 sm:mb-8">
-            <span className="text-eyebrow font-sans font-bold uppercase text-white">
+            <span className="text-eyebrow font-sans font-semibold uppercase text-[#D6D6D0]">
               {siteData.hero.eyebrow}
             </span>
           </div>
 
-          <h1 className="hero-rise hero-rise-2 type-display text-[clamp(3.5rem,11vw,8.5rem)] text-seaglass">
+          <h1 className="hero-rise hero-rise-2 type-display text-[clamp(2.75rem,9.5vw,8.5rem)] leading-[0.95] tracking-[0.02em] text-[#ECECE7]">
             {siteData.hero.displayLines.map((line, index) => (
-              <span key={line} className={`block ${index === 1 ? "text-tvl-amber" : ""}`}>
+              <span key={line} className={`block lg:whitespace-nowrap ${index === 1 ? "text-[#EBCB4A]" : ""}`}>
                 {line}
               </span>
             ))}
           </h1>
 
-          <p className="hero-rise hero-rise-3 mt-6 max-w-[40ch] font-sans text-lg leading-[1.5] text-white sm:mt-8 sm:text-xl">
+          <p className="hero-rise hero-rise-3 mt-7 max-w-[38ch] font-sans text-lg font-medium leading-[1.6] text-[#C4C4BE] sm:mt-9 sm:text-xl">
             {siteData.hero.body}
           </p>
 
@@ -59,10 +71,12 @@ export const Hero: React.FC<HeroProps> = ({ onOpenInquiry }) => {
               className="group inline-flex min-h-11 items-center gap-2 self-start font-sans text-sm font-bold uppercase tracking-[0.12em] text-white transition-colors hover:text-tvl-amber focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-4 focus-visible:outline-tvl-amber sm:self-auto"
             >
               {siteData.hero.secondary.label}
-              <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-1">
-                →
-              </span>
+              <Icon name="arrow-right" className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
             </Link>
+          </div>
+
+          <div className="hero-rise hero-rise-4 mt-10 sm:mt-12">
+            <HeroLeadForm />
           </div>
 
           <ul className="hero-rise hero-rise-4 mt-10 flex flex-wrap gap-x-5 gap-y-2 border-t border-shelf pt-5 font-sans text-xs font-semibold uppercase tracking-[0.14em] text-tide sm:mt-12">

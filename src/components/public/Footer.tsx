@@ -10,9 +10,9 @@ interface FooterProps {
 export const Footer: React.FC<FooterProps> = ({ onOpenInquiry }) => {
   return (
     <footer id="footer" className="relative border-t-4 border-tvl-amber bg-black">
-      <div className="mx-auto w-full max-w-[74rem] px-5 sm:px-8 lg:px-10">
+      <div className="mx-auto w-full max-w-[88rem] px-5 sm:px-8 lg:px-10">
         <div className="grid gap-10 border-b border-shelf py-14 sm:py-20 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
-          <h2 className="type-display text-[clamp(3rem,9vw,7rem)] text-seaglass">
+          <h2 className="type-display text-[clamp(3rem,9vw,7rem)] text-white">
             {siteData.finalCta.line}
             <span className="block text-tvl-amber">{siteData.finalCta.subline}</span>
           </h2>

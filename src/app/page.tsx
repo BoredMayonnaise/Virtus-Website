@@ -9,7 +9,10 @@ import { Services } from "@/components/public/Services";
 import { Process } from "@/components/public/Process";
 import { Products } from "@/components/public/Products";
 import { FAQ } from "@/components/public/FAQ";
+import { LeadCapture } from "@/components/public/LeadCapture";
 import { Footer } from "@/components/public/Footer";
+import { LeadDialog } from "@/components/public/LeadDialog";
+import { useLeadPopup } from "@/components/public/useLeadPopup";
 import { InquiryDialog } from "@/components/public/InquiryDialog";
 
 const INQUIRY_HASH = "#brief";
@@ -23,6 +26,8 @@ export default function Home() {
     setIsInquiryOpen(true);
   }, []);
   const openBlankInquiry = useCallback(() => openInquiry(), [openInquiry]);
+
+  const leadPopup = useLeadPopup(isInquiryOpen);
 
   // Closing a hash-opened dialog drops #brief without adding a history entry.
   const closeInquiry = useCallback(() => {
@@ -54,7 +59,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-abyss text-seaglass">
+    <div className="relative min-h-screen bg-abyss text-white">
       {/* Skip to Content for Accessibility */}
       <a
         href="#main"
@@ -73,10 +78,12 @@ export default function Home() {
         <Process />
         <Products onOpenInquiry={openBlankInquiry} />
         <FAQ onOpenInquiry={openBlankInquiry} />
+        <LeadCapture />
       </main>
 
       <Footer onOpenInquiry={openBlankInquiry} />
 
+      <LeadDialog open={leadPopup.open} onClose={leadPopup.close} />
       <InquiryDialog open={isInquiryOpen} presetService={presetService} onClose={closeInquiry} />
     </div>
   );

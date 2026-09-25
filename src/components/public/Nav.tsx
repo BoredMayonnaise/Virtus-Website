@@ -86,7 +86,7 @@ export const Nav: React.FC<NavProps> = ({ onOpenInquiry }) => {
         solid ? "border-shelf bg-black" : "border-transparent bg-transparent"
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-[74rem] items-center justify-between gap-4 px-5 sm:px-8 lg:h-[4.5rem] lg:px-10">
+      <div className="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8 lg:h-[4.5rem] lg:px-10">
         <Link
           href="#top"
           className="shrink-0 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-4 focus-visible:outline-tvl-amber"

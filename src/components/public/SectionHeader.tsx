@@ -29,7 +29,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
       </div>
       <h2
         id={titleId}
-        className={`font-monument text-h2 font-bold uppercase ${light ? "text-black" : "text-seaglass"}`}
+        className={`font-monument text-h2 font-bold uppercase ${light ? "text-black" : "text-white"}`}
       >
         {title}
       </h2>
