@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { db, Invoice } from "@/db";
+import { Icon } from "@/components/icons/Icon";
 
 export const AccountingView: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>(() => db.getInvoices());
@@ -86,7 +87,7 @@ export const AccountingView: React.FC = () => {
             <span className="font-mono text-2xl font-black text-emerald-600">
               ${paidTotal.toLocaleString()}
             </span>
-            <span className="font-mono text-[0.68rem] text-emerald-600 font-bold">✓ Settled</span>
+            <span className="font-mono text-[0.68rem] text-black font-bold"><Icon name="check" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" />Settled</span>
           </div>
         </div>
 
@@ -96,7 +97,7 @@ export const AccountingView: React.FC = () => {
             <span className="font-mono text-2xl font-black text-amber-700">
               ${pendingTotal.toLocaleString()}
             </span>
-            <span className="font-mono text-[0.68rem] text-amber-700 font-bold">● Pending</span>
+            <span className="font-mono text-[0.68rem] text-black font-bold"><Icon name="clock" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" />Pending</span>
           </div>
         </div>
 
@@ -216,7 +217,7 @@ export const AccountingView: React.FC = () => {
                           onClick={() => handleMarkPaid(inv.id)}
                           className="px-2.5 py-1 bg-[#FBD227] text-black border border-black font-bold rounded hover:bg-black hover:text-[#FBD227] transition-colors"
                         >
-                          Mark Paid ✓
+                          Mark Paid <Icon name="check" className="ml-1 inline h-4 w-4 align-[-0.2em]" />
                         </button>
                       )}
                       <button
@@ -248,7 +249,7 @@ export const AccountingView: React.FC = () => {
                 onClick={() => setIsInvoiceModalOpen(false)}
                 className="font-mono text-sm font-bold text-gray-500 hover:text-black"
               >
-                ✕
+                <Icon name="close" className="h-4 w-4" />
               </button>
             </div>
 

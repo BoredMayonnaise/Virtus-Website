@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { db, Booking } from "@/db";
+import { Icon } from "@/components/icons/Icon";
 
 interface BookingsViewProps {
   role?: "admin" | "team" | "client";
@@ -258,7 +259,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
           </div>
           {copiedLink && (
             <span className="font-mono text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 animate-fade-in">
-              ✓ Copied to clipboard!
+              <Icon name="check" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" />Copied to clipboard
             </span>
           )}
         </div>
@@ -332,7 +333,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                 className="p-1.5 rounded border border-gray-300 hover:bg-gray-100 text-gray-700 font-mono text-sm font-bold"
                 aria-label="Previous month"
               >
-                ◀
+                <Icon name="chevron-left" className="h-4 w-4" />
               </button>
               <button
                 type="button"
@@ -340,7 +341,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                 className="p-1.5 rounded border border-gray-300 hover:bg-gray-100 text-gray-700 font-mono text-sm font-bold"
                 aria-label="Next month"
               >
-                ▶
+                <Icon name="chevron-right" className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -474,7 +475,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
             {/* List of bookings for selected date */}
             {selectedDateBookings.length === 0 ? (
               <div className="text-center py-10 px-4 border border-dashed border-gray-300 rounded bg-gray-50/50">
-                <span className="text-3xl">🗓</span>
+                <Icon name="calendar" className="mx-auto h-8 w-8 text-gray-500" />
                 <p className="font-mono text-xs font-bold text-gray-700 mt-2">
                   No appointments scheduled
                 </p>
@@ -527,7 +528,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                         rel="noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#1C1C1C] text-white font-mono text-xs font-bold hover:bg-[#FBD227] hover:text-black transition-colors"
                       >
-                        <span>📹 Join Meet</span>
+                        <span className="inline-flex items-center gap-1.5"><Icon name="video" className="h-4 w-4" />Join Meet</span>
                       </a>
 
                       <select
@@ -663,7 +664,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                 onClick={() => setIsScheduleModalOpen(false)}
                 className="font-mono text-sm font-bold text-gray-500 hover:text-black"
               >
-                ✕
+                <Icon name="close" className="h-4 w-4" />
               </button>
             </div>
 

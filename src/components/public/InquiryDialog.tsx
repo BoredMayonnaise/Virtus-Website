@@ -16,6 +16,7 @@ import {
   type InquiryField,
   type Service,
 } from "@/lib/inquiryOptions";
+import { Icon } from "@/components/icons/Icon";
 
 type Step = 1 | 2 | 3;
 type Status = "idle" | "pending" | "error" | "success";
@@ -383,7 +384,7 @@ export const InquiryDialog: React.FC<InquiryDialogProps> = ({ open, presetServic
             className="inquiry-focus-dark flex h-11 w-11 shrink-0 items-center justify-center bg-[#FBD227] text-lg font-bold text-black transition-colors hover:bg-white"
             aria-label="Close inquiry form"
           >
-            <span aria-hidden="true">✕</span>
+            <Icon name="close" className="h-4 w-4" />
           </button>
         </div>
 

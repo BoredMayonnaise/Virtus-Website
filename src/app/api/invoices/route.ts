@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { isNeonConfigured, getNeonSql } from "@/lib/neon";
+import { denyUnlessStaff } from "@/lib/staffAuth";
 
 export async function GET() {
+  const denied = await denyUnlessStaff(["admin"]);
+  if (denied) return denied;
+
   try {
     if (isNeonConfigured()) {
       const sql = getNeonSql();
@@ -23,6 +27,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const denied = await denyUnlessStaff(["admin"]);
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const { invoiceNumber, clientId, clientName, company, amount, status, dueDate } = body;

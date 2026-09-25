@@ -1,17 +1,91 @@
 "use client";
 
-import React, { useState } from "react";
-import { db, Client } from "@/db";
+import React, { useEffect, useState } from "react";
+import { db, toClientSummary, type ClientSummary } from "@/db";
+import { Icon } from "@/components/icons/Icon";
 
-interface ClientsViewProps {
-  onSelectClient?: (clientId: string) => void;
+type Client = ClientSummary;
+
+/** A link that was just issued. The plaintext key exists only here, never on the server after this response. */
+interface IssuedLink {
+  clientId: string;
+  company: string;
+  url: string;
+  expiresAt?: string;
 }
 
-export const ClientsView: React.FC<ClientsViewProps> = ({ onSelectClient }) => {
-  const [clients, setClients] = useState<Client[]>(() => db.getClients());
+export const ClientsView: React.FC = () => {
+  const [clients, setClients] = useState<Client[]>(() => db.getClients().map(toClientSummary));
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [issuedLink, setIssuedLink] = useState<IssuedLink | null>(null);
+  const [issuingId, setIssuingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  // Server store is the source of truth for portal tokens
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/clients")
+      .then((r) => r.json())
+      .then((json) => {
+        if (!cancelled && json?.ok && Array.isArray(json.data)) setClients(json.data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const buildLink = (token: string) => `${window.location.origin}/track?token=${token}`;
+
+  const copyText = async (id: string, text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId((cur) => (cur === id ? null : cur)), 2000);
+    } catch {
+      window.prompt("Copy this link:", text);
+    }
+  };
+
+  // Issues a new key. The previous key stops working immediately.
+  const issueLink = async (c: Client) => {
+    if (issuingId) return;
+    if (
+      c.portalTokenLast4 &&
+      !window.confirm(`Create a new link for ${c.company}? Their current link and any open session stop working.`)
+    ) {
+      return;
+    }
+    setIssuingId(c.id);
+    try {
+      const res = await fetch(`/api/clients/${encodeURIComponent(c.id)}/token`, { method: "POST" });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || "Could not create link");
+      setClients((prev) =>
+        prev.map((x) =>
+          x.id === c.id
+            ? { ...x, portalTokenLast4: json.data.last4, portalTokenExpiresAt: json.data.expiresAt, portalTokenRevokedAt: null }
+            : x
+        )
+      );
+      setIssuedLink({ clientId: c.id, company: c.company, url: buildLink(json.data.token), expiresAt: json.data.expiresAt });
+      setIsAddModalOpen(true);
+    } catch (err: any) {
+      window.alert(err.message || "Could not create link");
+    } finally {
+      setIssuingId(null);
+    }
+  };
+
+  const closeModal = () => {
+    setIsAddModalOpen(false);
+    setIssuedLink(null);
+    setFormError("");
+  };
 
   // New Client Form
   const [name, setName] = useState("");
@@ -30,23 +104,37 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onSelectClient }) => {
 
   const totalRevenue = clients.reduce((acc, c) => acc + c.totalRevenue, 0);
 
-  const handleAddClient = (e: React.FormEvent) => {
+  const handleAddClient = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email) return;
+    if (!name || !email || submitting) return;
+    setSubmitting(true);
+    setFormError("");
 
-    db.addClient({
-      name,
-      contactName: name,
-      company: company || name,
-      email,
-      status,
-    });
+    try {
+      const res = await fetch("/api/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, contactName: name, company: company || name, email, status }),
+      });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || "Could not create client");
 
-    setClients(db.getClients());
-    setIsAddModalOpen(false);
-    setName("");
-    setCompany("");
-    setEmail("");
+      const { portalToken, ...created } = json.data as Client & { portalToken: string };
+      setClients((prev) => [created, ...prev]);
+      setIssuedLink({
+        clientId: created.id,
+        company: created.company,
+        url: buildLink(portalToken),
+        expiresAt: created.portalTokenExpiresAt ?? undefined,
+      });
+      setName("");
+      setCompany("");
+      setEmail("");
+    } catch (err: any) {
+      setFormError(err.message || "Could not create client");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -194,12 +282,16 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onSelectClient }) => {
                   </td>
                   <td className="py-3.5 px-4 text-right">
                     <div className="flex items-center justify-end gap-1.5 font-mono text-[0.68rem]">
+                      <span className="text-gray-500">
+                        {client.portalTokenLast4 ? `Key …${client.portalTokenLast4}` : "No link yet"}
+                      </span>
                       <button
                         type="button"
-                        onClick={() => onSelectClient && onSelectClient(client.id)}
-                        className="px-2.5 py-1 rounded bg-black text-[#FBD227] font-bold hover:bg-[#FBD227] hover:text-black transition-colors"
+                        onClick={() => issueLink(client)}
+                        disabled={issuingId === client.id}
+                        className="px-2.5 py-1 rounded border border-black text-black font-bold hover:bg-gray-100 transition-colors disabled:opacity-40"
                       >
-                        Client Room →
+                        {issuingId === client.id ? "Creating…" : client.portalTokenLast4 ? "New Link" : "Create Link"}
                       </button>
                     </div>
                   </td>
@@ -210,97 +302,144 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onSelectClient }) => {
         </div>
       </div>
 
-      {/* Add Client Modal */}
+      {/* Add Client / Issued Link Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
           <div className="w-full max-w-md rounded-lg border-2 border-black bg-white p-6 shadow-2xl">
             <div className="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
               <h3 className="font-mono font-black text-base uppercase text-black">
-                Add New Client Account
+                {issuedLink ? "Client Link Ready" : "Add New Client Account"}
               </h3>
               <button
                 type="button"
-                onClick={() => setIsAddModalOpen(false)}
+                onClick={closeModal}
+                aria-label="Close"
                 className="font-mono text-sm font-bold text-gray-500 hover:text-black"
               >
-                ✕
+                <Icon name="close" className="h-4 w-4" />
               </button>
             </div>
 
-            <form onSubmit={handleAddClient} className="space-y-4 font-mono text-xs">
-              <div>
-                <label className="block text-[0.7rem] font-bold uppercase text-gray-700 mb-1">
-                  Company / Organization Name *
-                </label>
+            {issuedLink ? (
+              <div className="space-y-4 font-mono text-xs">
+                <p className="text-gray-700">
+                  Payment received? Send this link to <strong>{issuedLink.company}</strong>. It opens their welcome
+                  page, then their private dashboard.
+                </p>
                 <input
                   type="text"
-                  required
-                  value={company}
-                  onChange={(e) => setCompany(e.target.value)}
-                  placeholder="e.g. Tidewater Coffee"
-                  className="w-full border border-gray-300 rounded p-2 focus:border-black focus:outline-none"
+                  readOnly
+                  value={issuedLink.url}
+                  onFocus={(e) => e.currentTarget.select()}
+                  aria-label="Client link"
+                  className="w-full border border-gray-300 rounded p-2 bg-gray-50"
                 />
+                <p className="text-gray-600">
+                  Copy it now. For security this link is shown once. Use &quot;New Link&quot; to replace it later
+                  {issuedLink.expiresAt
+                    ? `. Expires ${new Date(issuedLink.expiresAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}.`
+                    : "."}
+                </p>
+                <div className="pt-3 border-t border-gray-200 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="px-4 py-2 border border-gray-300 rounded font-bold text-gray-700 hover:bg-gray-100"
+                  >
+                    Done
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => copyText(issuedLink.clientId, issuedLink.url)}
+                    className="px-4 py-2 bg-black text-[#FBD227] border-2 border-black font-bold uppercase tracking-wider hover:bg-[#FBD227] hover:text-black transition-colors"
+                  >
+                    {copiedId === issuedLink.clientId ? "Copied" : "Copy Link"}
+                  </button>
+                </div>
               </div>
+            ) : (
+              <form onSubmit={handleAddClient} className="space-y-4 font-mono text-xs">
+                <div>
+                  <label className="block text-[0.7rem] font-bold uppercase text-gray-700 mb-1">
+                    Company / Organization Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    placeholder="e.g. Tidewater Coffee"
+                    className="w-full border border-gray-300 rounded p-2 focus:border-black focus:outline-none"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-[0.7rem] font-bold uppercase text-gray-700 mb-1">
-                  Primary Contact Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Arthur Pendelton"
-                  className="w-full border border-gray-300 rounded p-2 focus:border-black focus:outline-none"
-                />
-              </div>
+                <div>
+                  <label className="block text-[0.7rem] font-bold uppercase text-gray-700 mb-1">
+                    Primary Contact Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Arthur Pendelton"
+                    className="w-full border border-gray-300 rounded p-2 focus:border-black focus:outline-none"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-[0.7rem] font-bold uppercase text-gray-700 mb-1">
-                  Billing & Primary Email *
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="arthur@company.com"
-                  className="w-full border border-gray-300 rounded p-2 focus:border-black focus:outline-none"
-                />
-              </div>
+                <div>
+                  <label className="block text-[0.7rem] font-bold uppercase text-gray-700 mb-1">
+                    Billing & Primary Email *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="arthur@company.com"
+                    className="w-full border border-gray-300 rounded p-2 focus:border-black focus:outline-none"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-[0.7rem] font-bold uppercase text-gray-700 mb-1">
-                  Lifecycle Status
-                </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as Client["status"])}
-                  className="w-full border border-gray-300 rounded p-2 bg-white focus:border-black focus:outline-none"
-                >
-                  <option value="Onboarding">Onboarding</option>
-                  <option value="Active">Active Production</option>
-                  <option value="Completed">Completed / Retainer</option>
-                </select>
-              </div>
+                <div>
+                  <label className="block text-[0.7rem] font-bold uppercase text-gray-700 mb-1">
+                    Lifecycle Status
+                  </label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as Client["status"])}
+                    className="w-full border border-gray-300 rounded p-2 bg-white focus:border-black focus:outline-none"
+                  >
+                    <option value="Onboarding">Onboarding</option>
+                    <option value="Active">Active Production</option>
+                    <option value="Completed">Completed / Retainer</option>
+                  </select>
+                </div>
 
-              <div className="pt-3 border-t border-gray-200 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded font-bold text-gray-700 hover:bg-gray-100"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-black text-[#FBD227] border-2 border-black font-bold uppercase tracking-wider hover:bg-[#FBD227] hover:text-black transition-colors"
-                >
-                  Create Client
-                </button>
-              </div>
-            </form>
+                {formError && (
+                  <p role="alert" className="text-red-700 font-bold">
+                    {formError}
+                  </p>
+                )}
+
+                <div className="pt-3 border-t border-gray-200 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="px-4 py-2 border border-gray-300 rounded font-bold text-gray-700 hover:bg-gray-100"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-4 py-2 bg-black text-[#FBD227] border-2 border-black font-bold uppercase tracking-wider hover:bg-[#FBD227] hover:text-black transition-colors disabled:opacity-60"
+                  >
+                    {submitting ? "Creating…" : "Create Client"}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { db, MediaAsset } from "@/db";
+import { Icon } from "@/components/icons/Icon";
 
 export const MediaLibraryView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"general" | "client">("general");
@@ -166,7 +167,7 @@ export const MediaLibraryView: React.FC = () => {
                 onClick={() => setPreviewAsset(null)}
                 className="font-mono font-bold text-lg px-2 hover:bg-gray-100"
               >
-                ✕
+                <Icon name="close" className="h-4 w-4" />
               </button>
             </div>
 
@@ -180,21 +181,21 @@ export const MediaLibraryView: React.FC = () => {
               ) : previewAsset.fileType === "video" ? (
                 <div className="space-y-2">
                   <div className="h-44 bg-black text-white flex items-center justify-center rounded">
-                    🎬 [Streaming Video Player Preview]
+                    <Icon name="video" className="mr-2 inline h-5 w-5 align-[-0.25em]" />Video preview
                   </div>
                   <p className="text-xs text-gray-500">{previewAsset.filename} (4K ProRes)</p>
                 </div>
               ) : previewAsset.fileType === "audio" ? (
                 <div className="space-y-3">
                   <div className="h-20 bg-gray-900 text-[#FBD227] flex items-center justify-center rounded font-mono text-xs">
-                    🎵 ~~~~ Waveform Audio Player ~~~~
+                    <Icon name="music" className="mr-2 inline h-5 w-5 align-[-0.25em]" />Audio preview
                   </div>
                   <p className="text-xs text-gray-500">{previewAsset.filename} (Stereo 24-bit 48kHz)</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   <div className="h-32 bg-gray-100 border border-gray-300 flex items-center justify-center text-4xl">
-                    📄
+                    <Icon name="file" className="h-10 w-10 text-gray-500" />
                   </div>
                   <p className="text-xs text-gray-700 font-bold">{previewAsset.filename}</p>
                 </div>

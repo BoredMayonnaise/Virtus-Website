@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { db } from "@/db";
+import { Icon } from "@/components/icons/Icon";
 
 export const SecurityAuditView: React.FC = () => {
   const [showSecrets, setShowSecrets] = useState<{ [key: string]: boolean }>({});
@@ -48,12 +49,18 @@ export const SecurityAuditView: React.FC = () => {
     setShowSecrets((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const auditEvents = [
-    { event: "Admin Session Authenticated", user: "paks@thevirtuslabs.com", ip: "112.198.74.12", time: "10 mins ago", status: "Success" },
-    { event: "Contract e-Signed (MSA-2026-014)", user: "arthur@tidewater.coffee", ip: "142.250.190.46", time: "2 hours ago", status: "Verified" },
-    { event: "Stripe Webhook Received: Invoice Paid", user: "system@stripe.com", ip: "54.187.205.235", time: "4 hours ago", status: "Success" },
-    { event: "Neon PostgreSQL SSL Handshake", user: "app@neon.tech", ip: "3.221.100.11", time: "Today, 09:00 AM", status: "Encrypted" },
-  ];
+  // Real staff audit trail: sign-ins, registrations, role changes and access removals.
+  const [auditEvents, setAuditEvents] = useState<{ id: string; actor: string; action: string; target: string; at: string }[]>([]);
+  const [auditError, setAuditError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/staff/users")
+      .then((r) => r.json())
+      .then((body) => (body?.ok ? setAuditEvents(body.data.audit) : setAuditError(body?.error ?? "Could not load the audit trail.")))
+      .catch(() => setAuditError("Could not load the audit trail."));
+  }, []);
+
+  const actionLabel = (action: string) => action.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
 
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 text-[#000000]">
@@ -75,7 +82,7 @@ export const SecurityAuditView: React.FC = () => {
         </div>
 
         <span className="font-mono text-xs font-bold px-3 py-1.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
-          🛡️ SOC2 / HIPAA Ready Architecture
+          <Icon name="shield" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" />SOC2 / HIPAA ready architecture
         </span>
       </div>
 
@@ -141,7 +148,11 @@ export const SecurityAuditView: React.FC = () => {
         {dbStatus && (
           <div className={`p-4 rounded border font-mono text-xs ${dbStatus.configured ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-amber-50 border-amber-300 text-amber-950'}`}>
             <div className="flex items-center justify-between font-bold mb-1">
-              <span>{dbStatus.configured ? '✅ Neon PostgreSQL Connected' : '⚠️ Local Storage Bridge Active'}</span>
+              <span>{dbStatus.configured ? (
+                <><Icon name="check-circle" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" />Neon PostgreSQL connected</>
+              ) : (
+                <><Icon name="alert" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" />Local storage bridge active</>
+              )}</span>
               <span>{dbStatus.latencyMs !== undefined ? `${dbStatus.latencyMs}ms latency` : ''}</span>
             </div>
             <p className="text-[0.75rem] opacity-90">{dbStatus.message}</p>
@@ -165,7 +176,7 @@ export const SecurityAuditView: React.FC = () => {
             onClick={handleTestDb}
             className="border border-black bg-black text-[#FBD227] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#FBD227] hover:text-black transition-colors disabled:opacity-50"
           >
-            {testingDb ? "Pinging Neon..." : "⚡ Ping Connection"}
+            {testingDb ? "Pinging Neon..." : <><Icon name="bolt" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" />Ping connection</>}
           </button>
           <button
             type="button"
@@ -173,7 +184,7 @@ export const SecurityAuditView: React.FC = () => {
             onClick={handleMigrateDb}
             className="border border-black bg-[#1C1C1C] text-white px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider hover:bg-black transition-colors disabled:opacity-50"
           >
-            {migratingDb ? "Migrating Schema..." : "🚀 Initialize & Seed Schema"}
+            {migratingDb ? "Migrating Schema..." : <><Icon name="database" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" />Initialize & seed schema</>}
           </button>
           <span className="text-[0.68rem] text-gray-500 font-mono">
             Direct endpoint: <code className="bg-gray-100 px-1 py-0.5 rounded">/api/db/init</code>
@@ -263,25 +274,26 @@ export const SecurityAuditView: React.FC = () => {
           <table className="w-full text-left border-collapse text-xs font-mono">
             <thead>
               <tr className="border-b border-gray-200 text-gray-500 text-[0.68rem] uppercase">
-                <th className="py-2.5 px-4">Event Description</th>
-                <th className="py-2.5 px-4">Initiating Actor</th>
-                <th className="py-2.5 px-4">Source IP</th>
-                <th className="py-2.5 px-4">Timestamp</th>
-                <th className="py-2.5 px-4 text-right">Result</th>
+                <th className="py-2.5 px-4">Event</th>
+                <th className="py-2.5 px-4">Actor</th>
+                <th className="py-2.5 px-4">Target</th>
+                <th className="py-2.5 px-4 text-right">Time</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {auditEvents.map((row, idx) => (
-                <tr key={idx} className="hover:bg-gray-50">
-                  <td className="py-3 px-4 font-bold text-gray-900">{row.event}</td>
-                  <td className="py-3 px-4 text-gray-600">{row.user}</td>
-                  <td className="py-3 px-4 text-gray-500">{row.ip}</td>
-                  <td className="py-3 px-4 text-gray-400">{row.time}</td>
-                  <td className="py-3 px-4 text-right">
-                    <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[0.65rem]">
-                      {row.status}
-                    </span>
+              {auditEvents.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="py-6 px-4 text-center font-bold text-gray-700">
+                    {auditError ?? "No staff activity recorded yet."}
                   </td>
+                </tr>
+              )}
+              {auditEvents.map((row) => (
+                <tr key={row.id} className="hover:bg-gray-50">
+                  <td className="py-3 px-4 font-bold text-gray-900">{actionLabel(row.action)}</td>
+                  <td className="py-3 px-4 text-gray-700">{row.actor}</td>
+                  <td className="py-3 px-4 text-gray-700">{row.target}</td>
+                  <td className="py-3 px-4 text-right text-gray-700">{new Date(row.at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</td>
                 </tr>
               ))}
             </tbody>

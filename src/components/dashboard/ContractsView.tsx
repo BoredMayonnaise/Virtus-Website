@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { db, Contract } from "@/db";
+import { Icon } from "@/components/icons/Icon";
 
 export const ContractsView: React.FC = () => {
   const [contracts, setContracts] = useState<Contract[]>(() => db.getContracts());
@@ -160,7 +161,7 @@ export const ContractsView: React.FC = () => {
                         }}
                         className="px-3 py-1 bg-[#FBD227] text-black border border-black font-mono text-[0.7rem] font-bold rounded hover:bg-black hover:text-[#FBD227] transition-colors"
                       >
-                        ✍ e-Sign Now
+                        <Icon name="signature" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" />e-Sign Now
                       </button>
                     ) : (
                       <button
@@ -197,7 +198,7 @@ export const ContractsView: React.FC = () => {
                 onClick={() => setSigningContract(null)}
                 className="font-mono text-sm font-bold text-gray-500 hover:text-black"
               >
-                ✕
+                <Icon name="close" className="h-4 w-4" />
               </button>
             </div>
 
@@ -242,7 +243,14 @@ export const ContractsView: React.FC = () => {
                   Digital Signature Stamp
                 </label>
                 <div className="h-20 bg-gray-50 border-2 border-dashed border-gray-300 rounded flex items-center justify-center font-mono italic text-lg text-gray-800">
-                  {signerNameInput ? `✍ ${signerNameInput}` : "Type name above to generate e-sign stamp"}
+                  {signerNameInput ? (
+                    <>
+                      <Icon name="signature" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" />
+                      {signerNameInput}
+                    </>
+                  ) : (
+                    "Type name above to generate e-sign stamp"
+                  )}
                 </div>
                 <span className="text-[0.65rem] text-gray-400 mt-1 block">
                   Legally binding electronic signature under the ESIGN & UETA Acts.
@@ -282,7 +290,7 @@ export const ContractsView: React.FC = () => {
                 onClick={() => setIsDraftModalOpen(false)}
                 className="font-mono text-sm font-bold text-gray-500 hover:text-black"
               >
-                ✕
+                <Icon name="close" className="h-4 w-4" />
               </button>
             </div>
 

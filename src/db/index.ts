@@ -1,4 +1,5 @@
 // Database store with in-memory persistence and Neon connection readiness
+export { PORTAL_TOKEN_PATTERN, generatePortalToken } from "@/lib/tokens";
 
 export interface Opportunity {
   id: string;
@@ -39,8 +40,38 @@ export interface Client {
   status: "Active" | "Completed" | "Onboarding";
   totalRevenue: number;
   activeProjectsCount: number;
+  /** SHA-256 of the access token. The plaintext token is never stored. */
+  portalTokenHash: string | null;
+  portalTokenLast4: string | null;
+  portalTokenExpiresAt: string | null;
+  portalTokenRevokedAt: string | null;
   createdAt: string;
 }
+
+/** Client record safe to send to the browser: no token hash. */
+export type ClientSummary = Omit<Client, "portalTokenHash">;
+
+export function toClientSummary(client: Client): ClientSummary {
+  const { portalTokenHash: _hash, ...rest } = client;
+  return rest;
+}
+
+export interface RevisionTicket {
+  id: string;
+  clientId: string;
+  round: number;
+  categories: string[];
+  targetArea: string;
+  priority: "routine" | "important" | "blocker";
+  details: string;
+  referenceUrl: string;
+  attachments: string[];
+  submittedAt: string;
+  submittedBy: string;
+  submittedEmail: string;
+}
+
+export type ApprovalStatus = "pending" | "approved" | "changes_requested";
 
 export interface Project {
   id: string;
@@ -207,6 +238,9 @@ class AgencyDatabase {
     },
   ];
 
+  private revisions: RevisionTicket[] = [];
+  private approvals: Record<string, ApprovalStatus> = {};
+
   private clients: Client[] = [
     {
       id: "cli-1",
@@ -217,6 +251,10 @@ class AgencyDatabase {
       status: "Active",
       totalRevenue: 5500,
       activeProjectsCount: 1,
+      portalTokenHash: "650b0796b2d2749faee961dae06277ce5f946c87b9e56f7cfead173469d93b28", // demo token, dev only
+      portalTokenLast4: "afcb",
+      portalTokenExpiresAt: "2099-01-01T00:00:00.000Z",
+      portalTokenRevokedAt: null,
       createdAt: "2026-09-21T10:00:00Z",
     },
     {
@@ -228,6 +266,10 @@ class AgencyDatabase {
       status: "Onboarding",
       totalRevenue: 3600,
       activeProjectsCount: 1,
+      portalTokenHash: "a94fd9b3bd710ecd4d48095ff5671c0ca7e91b6bc62db8426730cec97b702927", // demo token, dev only
+      portalTokenLast4: "1e7f",
+      portalTokenExpiresAt: "2099-01-01T00:00:00.000Z",
+      portalTokenRevokedAt: null,
       createdAt: "2026-09-22T15:00:00Z",
     },
   ];
@@ -605,7 +647,7 @@ class AgencyDatabase {
       sender: "Website Brief Engine",
       senderEmail: "briefs@thevirtuslabs.com",
       recipient: "leads@thevirtuslabs.com",
-      subject: "⚡ New Inbound Inquiry: Nova AI Audio ($6,800)",
+      subject: "New Inbound Inquiry: Nova AI Audio ($6,800)",
       preview: "New project brief submitted via interactive auto-quote builder...",
       body: "New Lead Intake Details:\n\nContact: Jackson Meyer\nCompany: Nova AI Audio\nNeeds: Brand & Creative, Web & Digital, Content Engine\nUrgency: Urgent (< 2 weeks)\nEstimated Value: $6,800\nRecommended Tier: Integrated Studio\n\nView Opportunity in Pipeline ->",
       timestamp: "Yesterday, 4:30 PM",
@@ -751,6 +793,10 @@ class AgencyDatabase {
         status: "Active",
         totalRevenue: opp.dealValue,
         activeProjectsCount: 1,
+        portalTokenHash: null,
+        portalTokenLast4: null,
+        portalTokenExpiresAt: null,
+        portalTokenRevokedAt: null,
         createdAt: new Date().toISOString(),
       };
       this.clients.unshift(newClient);
@@ -826,6 +872,66 @@ class AgencyDatabase {
     return [...this.clients];
   }
 
+  public getClientById(id: string): Client | undefined {
+    return this.clients.find((c) => c.id === id);
+  }
+
+  public getClientByTokenHash(hash: string): Client | undefined {
+    return this.clients.find((c) => c.portalTokenHash !== null && c.portalTokenHash === hash);
+  }
+
+  /** Stores a freshly issued token hash and revokes nothing else: the old hash is simply replaced. */
+  public setClientToken(
+    id: string,
+    token: { hash: string; last4: string; expiresAt: string }
+  ): Client | null {
+    const client = this.clients.find((c) => c.id === id);
+    if (!client) return null;
+    client.portalTokenHash = token.hash;
+    client.portalTokenLast4 = token.last4;
+    client.portalTokenExpiresAt = token.expiresAt;
+    client.portalTokenRevokedAt = null;
+    return client;
+  }
+
+  public getRevisions(clientId: string): RevisionTicket[] {
+    return this.revisions.filter((r) => r.clientId === clientId);
+  }
+
+  public addRevision(ticket: Omit<RevisionTicket, "id" | "round" | "submittedAt">): RevisionTicket {
+    const round = this.getRevisions(ticket.clientId).length + 1;
+    const created: RevisionTicket = {
+      ...ticket,
+      id: `REV-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+      round,
+      submittedAt: new Date().toISOString(),
+    };
+    this.revisions.unshift(created);
+    this.approvals[ticket.clientId] = "changes_requested";
+    this.activity.unshift({
+      id: `act-${Date.now()}`,
+      description: `Revision round ${round} requested by ${ticket.submittedBy} (${created.id})`,
+      category: "milestone",
+      timestamp: "Just now",
+    });
+    return created;
+  }
+
+  public getApproval(clientId: string): ApprovalStatus {
+    return this.approvals[clientId] ?? "pending";
+  }
+
+  public setApproval(clientId: string, status: ApprovalStatus): ApprovalStatus {
+    this.approvals[clientId] = status;
+    this.activity.unshift({
+      id: `act-${Date.now()}`,
+      description: `Deliverable approval set to "${status}" by client ${clientId}`,
+      category: "milestone",
+      timestamp: "Just now",
+    });
+    return status;
+  }
+
   public getInvoices(): Invoice[] {
     return [...this.invoices];
   }
@@ -859,10 +965,13 @@ class AgencyDatabase {
     return b;
   }
 
-  public addClient(client: Omit<Client, "id" | "createdAt" | "totalRevenue" | "activeProjectsCount">): Client {
+  public addClient(
+    client: Omit<Client, "id" | "createdAt" | "totalRevenue" | "activeProjectsCount" | "portalTokenRevokedAt">
+  ): Client {
     const newClient: Client = {
       ...client,
       id: `cli-${Date.now()}`,
+      portalTokenRevokedAt: null,
       totalRevenue: 0,
       activeProjectsCount: 0,
       createdAt: new Date().toISOString(),
@@ -984,5 +1093,6 @@ class AgencyDatabase {
   }
 }
 
-// Global singleton instance
-export const db = new AgencyDatabase();
+// Global singleton instance (shared across route bundles in dev)
+const globalForDb = globalThis as unknown as { __agencyDb?: AgencyDatabase };
+export const db = globalForDb.__agencyDb ?? (globalForDb.__agencyDb = new AgencyDatabase());

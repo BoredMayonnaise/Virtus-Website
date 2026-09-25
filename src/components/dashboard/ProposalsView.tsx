@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { db, Proposal } from "@/db";
+import { Icon } from "@/components/icons/Icon";
 
 export const ProposalsView: React.FC = () => {
   const [proposals, setProposals] = useState<Proposal[]>(() => db.getProposals());
@@ -197,7 +198,7 @@ export const ProposalsView: React.FC = () => {
                 onClick={() => setViewingProposal(null)}
                 className="font-mono text-sm font-bold text-gray-500 hover:text-black"
               >
-                ✕
+                <Icon name="close" className="h-4 w-4" />
               </button>
             </div>
 
@@ -241,7 +242,7 @@ export const ProposalsView: React.FC = () => {
                       onClick={() => handleStatusChange(viewingProposal.id, "Accepted")}
                       className="px-4 py-2 bg-emerald-600 text-white font-bold rounded uppercase tracking-wider hover:bg-emerald-700 transition-colors"
                     >
-                      ✓ Simulate Client Acceptance
+                      <Icon name="check" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" />Simulate client acceptance
                     </button>
                   )}
                   <button
@@ -271,7 +272,7 @@ export const ProposalsView: React.FC = () => {
                 onClick={() => setIsCreateModalOpen(false)}
                 className="font-mono text-sm font-bold text-gray-500 hover:text-black"
               >
-                ✕
+                <Icon name="close" className="h-4 w-4" />
               </button>
             </div>
 

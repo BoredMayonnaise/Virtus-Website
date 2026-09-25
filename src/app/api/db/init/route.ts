@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { isNeonConfigured, getNeonSql, initNeonSchema } from "@/lib/neon";
+import { denyUnlessStaff } from "@/lib/staffAuth";
 
 export async function GET() {
+  const denied = await denyUnlessStaff(["admin"]);
+  if (denied) return denied;
+
   const configured = isNeonConfigured();
 
   if (!configured) {
@@ -51,6 +55,9 @@ export async function GET() {
 }
 
 export async function POST() {
+  const denied = await denyUnlessStaff(["admin"]);
+  if (denied) return denied;
+
   const result = await initNeonSchema();
   return NextResponse.json(result);
 }

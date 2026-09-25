@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { db, EmailThread } from "@/db";
+import { Icon } from "@/components/icons/Icon";
 
 export const BusinessEmailView: React.FC = () => {
   const [emails, setEmails] = useState<EmailThread[]>(() => db.getEmailThreads());
@@ -66,7 +67,7 @@ export const BusinessEmailView: React.FC = () => {
           onClick={() => setIsComposeOpen(true)}
           className="border-2 border-black bg-black text-[#FBD227] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider shadow-xs hover:bg-[#FBD227] hover:text-black transition-colors"
         >
-          ✎ Compose Email
+          <Icon name="pencil" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" />Compose Email
         </button>
       </div>
 
@@ -87,7 +88,7 @@ export const BusinessEmailView: React.FC = () => {
                   : "text-gray-700 hover:bg-gray-200/60"
               }`}
             >
-              <span>📥 Inbox</span>
+              <span className="inline-flex items-center gap-2"><Icon name="inbox" className="h-4 w-4" />Inbox</span>
               <span className="text-[0.68rem] bg-gray-200 text-black px-1.5 py-0.2 rounded font-mono">
                 {emails.filter((m) => m.folder === "inbox").length}
               </span>
@@ -101,7 +102,7 @@ export const BusinessEmailView: React.FC = () => {
                   : "text-gray-700 hover:bg-gray-200/60"
               }`}
             >
-              <span>⚡ Brief Inquiries</span>
+              <span className="inline-flex items-center gap-2"><Icon name="bolt" className="h-4 w-4" />Brief Inquiries</span>
               <span className="text-[0.68rem] bg-amber-200 text-amber-900 px-1.5 py-0.2 rounded font-mono">
                 {emails.filter((m) => m.folder === "inquiries").length}
               </span>
@@ -115,7 +116,7 @@ export const BusinessEmailView: React.FC = () => {
                   : "text-gray-700 hover:bg-gray-200/60"
               }`}
             >
-              <span>📤 Sent</span>
+              <span className="inline-flex items-center gap-2"><Icon name="send" className="h-4 w-4" />Sent</span>
               <span className="text-[0.68rem] text-gray-400">
                 {emails.filter((m) => m.folder === "sent").length}
               </span>
@@ -229,7 +230,7 @@ export const BusinessEmailView: React.FC = () => {
                 onClick={() => setIsComposeOpen(false)}
                 className="font-mono text-sm font-bold text-gray-500 hover:text-black"
               >
-                ✕
+                <Icon name="close" className="h-4 w-4" />
               </button>
             </div>
 

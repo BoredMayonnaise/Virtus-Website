@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Icon } from "@/components/icons/Icon";
 
 export const WorkspaceSettingsView: React.FC = () => {
   const [studioName, setStudioName] = useState("The Virtus Labs");
@@ -37,7 +38,7 @@ export const WorkspaceSettingsView: React.FC = () => {
 
         {savedNotice && (
           <span className="font-mono text-xs text-emerald-700 bg-emerald-50 border border-emerald-300 px-3 py-1.5 rounded font-bold animate-fade-in">
-            ✓ Settings Saved Successfully!
+            <Icon name="check" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" />Settings saved
           </span>
         )}
       </div>
@@ -87,7 +88,7 @@ export const WorkspaceSettingsView: React.FC = () => {
                 className="flex-1 border border-gray-300 rounded p-2 focus:border-black focus:outline-none"
               />
               <span className="inline-flex items-center px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-300 rounded font-bold text-[0.7rem]">
-                ✓ SSL Active
+                <Icon name="lock" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" />SSL active
               </span>
             </div>
           </div>

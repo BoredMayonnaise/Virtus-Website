@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { db } from "@/db";
+import { Icon } from "@/components/icons/Icon";
 
 interface OverviewProps {
   onNavigate: (view: string) => void;
@@ -37,21 +38,21 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
             onClick={() => onNavigate("bookings")}
             className="inline-flex items-center gap-1.5 border border-gray-400 bg-white px-3 py-2 text-xs font-mono font-bold uppercase tracking-wider text-black shadow-xs hover:border-black hover:bg-[#FBD227] transition-all"
           >
-            <span>📅 Calendar</span>
+            <span className="inline-flex items-center gap-1.5"><Icon name="calendar" className="h-4 w-4" />Calendar</span>
           </button>
           <button
             type="button"
             onClick={() => onNavigate("library")}
             className="inline-flex items-center gap-1.5 border border-gray-400 bg-white px-3 py-2 text-xs font-mono font-bold uppercase tracking-wider text-black shadow-xs hover:border-black hover:bg-gray-50 transition-all"
           >
-            <span>🗂 Library</span>
+            <span className="inline-flex items-center gap-1.5"><Icon name="library" className="h-4 w-4" />Library</span>
           </button>
           <button
             type="button"
             onClick={() => onNavigate("leads")}
             className="inline-flex items-center gap-1.5 border-2 border-black bg-black px-3.5 py-2 text-xs font-mono font-bold uppercase tracking-wider text-[#FBD227] shadow-xs hover:bg-[#FBD227] hover:text-black transition-all"
           >
-            <span>⚡ Open pipeline →</span>
+            <span className="inline-flex items-center gap-1.5"><Icon name="bolt" className="h-4 w-4" />Open pipeline<Icon name="arrow-right" className="h-4 w-4" /></span>
           </button>
         </div>
       </div>
@@ -84,7 +85,7 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs text-gray-500 font-medium">Open leads</span>
             <div className="flex h-7 w-7 items-center justify-center rounded bg-sky-100 text-sky-700 font-bold text-xs">
-              👥
+              <Icon name="users" className="h-4 w-4" />
             </div>
           </div>
           <div className="flex items-baseline justify-between">
@@ -105,7 +106,7 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs text-gray-500 font-medium">Active projects</span>
             <div className="flex h-7 w-7 items-center justify-center rounded bg-rose-100 text-rose-700 font-bold text-xs">
-              🔗
+              <Icon name="link" className="h-4 w-4" />
             </div>
           </div>
           <div className="flex items-baseline justify-between">
@@ -126,7 +127,7 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs text-gray-500 font-medium">Collected</span>
             <div className="flex h-7 w-7 items-center justify-center rounded bg-emerald-100 text-emerald-700 font-bold text-xs">
-              ✉
+              <Icon name="mail" className="h-4 w-4" />
             </div>
           </div>
           <div className="flex items-baseline justify-between">

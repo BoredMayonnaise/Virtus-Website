@@ -2,17 +2,21 @@
 
 import React, { useState } from "react";
 import { db, Project, Task } from "@/db";
+import { Icon } from "@/components/icons/Icon";
 
 interface ProjectsTasksViewProps {
   role?: "admin" | "team" | "client";
   activeMember?: string;
   onMemberChange?: (member: string) => void;
+  /** Team members cannot browse other people's boards. */
+  lockMember?: boolean;
 }
 
 export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
   role = "admin",
   activeMember = "Kai (Brand Lead)",
   onMemberChange,
+  lockMember = false,
 }) => {
   const [allProjects] = useState<Project[]>(db.getProjects());
   const [allTasks, setAllTasks] = useState<Task[]>(db.getTasks());
@@ -81,6 +85,9 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
             <span className="text-[0.7rem] font-mono font-bold text-gray-500 uppercase px-1">
               Active Member:
             </span>
+            {lockMember ? (
+              <span className="font-mono text-xs font-bold text-gray-900 px-1">{activeMember}</span>
+            ) : (
             <select
               value={activeMember}
               onChange={(e) => onMemberChange && onMemberChange(e.target.value)}
@@ -90,6 +97,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
               <option value="Ren (Frontend)">Ren (Frontend)</option>
               <option value="Sora (UX)">Sora (UX)</option>
             </select>
+            )}
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-1.5 bg-gray-100 p-1 rounded-lg border border-gray-300 text-xs font-mono">
@@ -138,7 +146,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
       {role === "team" && (
         <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded-r text-xs font-mono text-blue-900 flex items-center justify-between">
           <span>
-            🔒 <strong>Team Floor Scope:</strong> You have delivery-level access. You can view and update your assigned tasks and project deliverables. Confidential client financial ledgers, studio margins, and CRM lead pipelines are restricted.
+            <Icon name="lock" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" /> <strong>Team Floor Scope:</strong> You have delivery-level access. You can view and update your assigned tasks and project deliverables. Confidential client financial ledgers, studio margins, and CRM lead pipelines are restricted.
           </span>
           <span className="text-[0.65rem] text-blue-700 bg-blue-100 px-2 py-0.5 rounded font-bold">
             Team Scoped
@@ -239,7 +247,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
                         <h4 className="font-medium text-xs text-black leading-snug">{t.title}</h4>
 
                         <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-[0.68rem] text-gray-500 font-mono">
-                          <span>👤 {t.assignee}</span>
+                          <span className="inline-flex items-center gap-1"><Icon name="user" className="h-3.5 w-3.5" />{t.assignee}</span>
                           <span>Due: {t.dueDate}</span>
                         </div>
 

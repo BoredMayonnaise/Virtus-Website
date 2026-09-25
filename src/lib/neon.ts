@@ -36,6 +36,20 @@ export async function initNeonSchema() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
     `;
+    await sql`ALTER TABLE clients ADD COLUMN IF NOT EXISTS portal_token VARCHAR(64) UNIQUE;`;
+    await sql`ALTER TABLE clients ADD COLUMN IF NOT EXISTS portal_token_hash VARCHAR(64) UNIQUE;`;
+    await sql`ALTER TABLE clients ADD COLUMN IF NOT EXISTS portal_token_last4 VARCHAR(8);`;
+    await sql`ALTER TABLE clients ADD COLUMN IF NOT EXISTS portal_token_expires_at TIMESTAMPTZ;`;
+    await sql`ALTER TABLE clients ADD COLUMN IF NOT EXISTS portal_token_revoked_at TIMESTAMPTZ;`;
+    // Migrate plaintext tokens from the first iteration to hashes, then drop the plaintext.
+    await sql`
+      UPDATE clients
+      SET portal_token_hash = encode(sha256(convert_to(portal_token, 'UTF8')), 'hex'),
+          portal_token_last4 = right(portal_token, 4),
+          portal_token_expires_at = NOW() + INTERVAL '30 days'
+      WHERE portal_token IS NOT NULL AND portal_token_hash IS NULL;
+    `;
+    await sql`UPDATE clients SET portal_token = NULL WHERE portal_token IS NOT NULL AND portal_token_hash IS NOT NULL;`;
 
     // 2. Opportunities (GHL Pipeline)
     await sql`
@@ -166,6 +180,34 @@ export async function initNeonSchema() {
       );
     `;
 
+    // 10. Client revision requests
+    await sql`
+      CREATE TABLE IF NOT EXISTS client_revisions (
+        id VARCHAR(64) PRIMARY KEY,
+        client_id VARCHAR(64) NOT NULL,
+        round INT NOT NULL,
+        categories JSONB DEFAULT '[]'::jsonb,
+        target_area VARCHAR(255),
+        priority VARCHAR(32) NOT NULL,
+        details TEXT NOT NULL,
+        reference_url TEXT,
+        attachments JSONB DEFAULT '[]'::jsonb,
+        submitted_by VARCHAR(255),
+        submitted_email VARCHAR(255),
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS client_revisions_client_idx ON client_revisions (client_id);`;
+
+    // 11. Client deliverable approval state
+    await sql`
+      CREATE TABLE IF NOT EXISTS client_approvals (
+        client_id VARCHAR(64) PRIMARY KEY,
+        status VARCHAR(32) NOT NULL,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `;
+
     // Seed default records if empty
     await seedNeonIfEmpty(sql);
 
@@ -192,12 +234,16 @@ async function seedNeonIfEmpty(sql: any) {
       return; // Already has data
     }
 
-    // Seed Clients
+    // Seed Clients. Demo access tokens are only seeded outside production.
+    const demo = process.env.NODE_ENV !== "production";
+    const cli1Hash = demo ? "650b0796b2d2749faee961dae06277ce5f946c87b9e56f7cfead173469d93b28" : null;
+    const cli2Hash = demo ? "a94fd9b3bd710ecd4d48095ff5671c0ca7e91b6bc62db8426730cec97b702927" : null;
+    const demoExpiry = demo ? "2099-01-01T00:00:00Z" : null;
     await sql`
-      INSERT INTO clients (id, name, contact_name, company, email, status, total_revenue, active_projects_count)
+      INSERT INTO clients (id, name, contact_name, company, email, status, total_revenue, active_projects_count, portal_token_hash, portal_token_last4, portal_token_expires_at)
       VALUES 
-        ('cli-1', 'Arthur Pendelton', 'Arthur Pendelton', 'Tidewater Coffee', 'arthur@tidewater.coffee', 'Active', 5500, 1),
-        ('cli-2', 'Elena Vance', 'Dr. Elena Vance', 'Meridian Clinic', 'elena@meridianhealth.org', 'Onboarding', 3600, 1)
+        ('cli-1', 'Arthur Pendelton', 'Arthur Pendelton', 'Tidewater Coffee', 'arthur@tidewater.coffee', 'Active', 5500, 1, ${cli1Hash}, ${demo ? "afcb" : null}, ${demoExpiry}),
+        ('cli-2', 'Elena Vance', 'Dr. Elena Vance', 'Meridian Clinic', 'elena@meridianhealth.org', 'Onboarding', 3600, 1, ${cli2Hash}, ${demo ? "1e7f" : null}, ${demoExpiry})
       ON CONFLICT (id) DO NOTHING;
     `;
 

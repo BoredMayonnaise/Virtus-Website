@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import Link from "next/link";
+import { Icon } from "@/components/icons/Icon";
 
 export default function ErrorBoundary({
   error,
@@ -59,7 +60,7 @@ export default function ErrorBoundary({
               onClick={() => reset()}
               className="w-full sm:w-auto border-2 border-[#FBD227] bg-[#FBD227] text-black font-sans text-xs font-bold uppercase tracking-wider px-6 py-3 hover:bg-black hover:text-[#FBD227] transition-colors"
             >
-              ⚡ Retry / Recover Session
+              <Icon name="refresh" className="mr-1.5 inline h-4 w-4 align-[-0.2em]" />Retry / recover session
             </button>
             <Link
               href="/"

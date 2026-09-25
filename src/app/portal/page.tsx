@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Logo } from "@/components/public/Logo";
+import { Icon } from "@/components/icons/Icon";
 
 export const metadata = {
   title: "Workspace Portal · The Virtus Labs",
@@ -66,7 +67,7 @@ export default function PortalGatewayPage() {
         </h1>
 
         <p className="mt-5 max-w-[52ch] font-sans text-lg leading-[1.5] text-white">
-          One team, three rooms. Pick the workspace that matches your role.
+          One team, three rooms. Pick the workspace that matches your role. Every room asks you to sign in.
         </p>
 
         <ul className="mt-12 grid gap-5 md:grid-cols-3">
@@ -89,15 +90,15 @@ export default function PortalGatewayPage() {
                 </div>
 
                 <div className="mt-9 flex items-center justify-between border-t-2 border-black pt-4">
-                  <span className="font-sans text-eyebrow font-bold uppercase text-black">
+                  <span className="inline-flex items-center gap-2 font-sans text-eyebrow font-bold uppercase text-black">
+                    <Icon name="lock" className="h-4 w-4" />
                     {door.label}
+                    <span className="sr-only"> — sign-in required</span>
                   </span>
-                  <span
-                    aria-hidden="true"
-                    className="font-sans text-lg font-bold text-black transition-transform duration-200 group-hover:translate-x-1"
-                  >
-                    →
-                  </span>
+                  <Icon
+                    name="arrow-right"
+                    className="h-5 w-5 text-black transition-transform duration-200 group-hover:translate-x-1"
+                  />
                 </div>
               </Link>
             </li>
