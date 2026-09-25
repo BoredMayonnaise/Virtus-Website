@@ -51,7 +51,7 @@ export const AccountingView: React.FC = () => {
   });
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 text-[#0F1B2A]">
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 text-[#000000]">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-200 pb-5">
         <div>
@@ -61,7 +61,7 @@ export const AccountingView: React.FC = () => {
               Operations OS • Financial Ledger & Invoicing
             </span>
           </div>
-          <h1 className="font-monument text-2xl sm:text-3xl font-black text-[#0F1B2A] tracking-tight mt-1 uppercase">
+          <h1 className="font-monument text-2xl sm:text-3xl font-black text-[#000000] tracking-tight mt-1 uppercase">
             Accounting & Billing
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
@@ -72,7 +72,7 @@ export const AccountingView: React.FC = () => {
         <button
           type="button"
           onClick={() => setIsInvoiceModalOpen(true)}
-          className="border-2 border-black bg-black text-[#FFE600] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider shadow-xs hover:bg-[#FFE600] hover:text-black transition-colors"
+          className="border-2 border-black bg-black text-[#FBD227] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider shadow-xs hover:bg-[#FBD227] hover:text-black transition-colors"
         >
           + Issue New Invoice
         </button>
@@ -157,7 +157,7 @@ export const AccountingView: React.FC = () => {
               onClick={() => setStatusFilter(st)}
               className={`px-2.5 py-1 rounded font-bold uppercase text-[0.7rem] transition-colors ${
                 statusFilter === st
-                  ? "bg-black text-[#FFE600]"
+                  ? "bg-black text-[#FBD227]"
                   : "bg-gray-100 text-gray-600 hover:text-black hover:bg-gray-200"
               }`}
             >
@@ -214,7 +214,7 @@ export const AccountingView: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleMarkPaid(inv.id)}
-                          className="px-2.5 py-1 bg-[#FFE600] text-black border border-black font-bold rounded hover:bg-black hover:text-[#FFE600] transition-colors"
+                          className="px-2.5 py-1 bg-[#FBD227] text-black border border-black font-bold rounded hover:bg-black hover:text-[#FBD227] transition-colors"
                         >
                           Mark Paid ✓
                         </button>
@@ -306,7 +306,7 @@ export const AccountingView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-black text-[#FFE600] border-2 border-black font-bold uppercase tracking-wider hover:bg-[#FFE600] hover:text-black transition-colors"
+                  className="px-4 py-2 bg-black text-[#FBD227] border-2 border-black font-bold uppercase tracking-wider hover:bg-[#FBD227] hover:text-black transition-colors"
                 >
                   Issue & Send via Stripe
                 </button>

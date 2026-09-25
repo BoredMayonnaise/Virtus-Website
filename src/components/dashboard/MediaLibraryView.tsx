@@ -16,14 +16,14 @@ export const MediaLibraryView: React.FC = () => {
   });
 
   return (
-    <div className="p-6 sm:p-10 max-w-[88rem] mx-auto text-[#0F1B2A]">
+    <div className="p-6 sm:p-10 max-w-[88rem] mx-auto text-[#000000]">
       {/* Header & Storage Gauge */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
           <span className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-gray-500 block mb-1">
             GHL ASSET & MEDIA VAULT
           </span>
-          <h1 className="font-monument text-3xl font-black text-[#0F1B2A] tracking-tight">
+          <h1 className="font-monument text-3xl font-black text-[#000000] tracking-tight">
             MEDIA & DOCUMENT LIBRARY
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
@@ -38,7 +38,7 @@ export const MediaLibraryView: React.FC = () => {
             <span className="text-black font-mono">1.8 GB / 10 GB</span>
           </div>
           <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-            <div className="bg-[#FFE600] h-full" style={{ width: "18%" }} />
+            <div className="bg-[#FBD227] h-full" style={{ width: "18%" }} />
           </div>
           <span className="text-[0.65rem] text-gray-400 mt-1 block">
             Zero egress fees · S3-compatible API
@@ -55,7 +55,7 @@ export const MediaLibraryView: React.FC = () => {
             onClick={() => setActiveTab("general")}
             className={`px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider rounded transition-all ${
               activeTab === "general"
-                ? "bg-[#0F1B2A] text-white shadow-sm"
+                ? "bg-[#000000] text-white shadow-sm"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
@@ -66,7 +66,7 @@ export const MediaLibraryView: React.FC = () => {
             onClick={() => setActiveTab("client")}
             className={`px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider rounded transition-all ${
               activeTab === "client"
-                ? "bg-[#0F1B2A] text-white shadow-sm"
+                ? "bg-[#000000] text-white shadow-sm"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
@@ -83,7 +83,7 @@ export const MediaLibraryView: React.FC = () => {
               onClick={() => setSelectedType(type)}
               className={`px-3 py-1 text-xs font-mono uppercase rounded transition-colors ${
                 selectedType === type
-                  ? "bg-[#FFE600] text-black font-bold"
+                  ? "bg-[#FBD227] text-black font-bold"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium"
               }`}
             >
@@ -186,7 +186,7 @@ export const MediaLibraryView: React.FC = () => {
                 </div>
               ) : previewAsset.fileType === "audio" ? (
                 <div className="space-y-3">
-                  <div className="h-20 bg-gray-900 text-[#FFE600] flex items-center justify-center rounded font-mono text-xs">
+                  <div className="h-20 bg-gray-900 text-[#FBD227] flex items-center justify-center rounded font-mono text-xs">
                     🎵 ~~~~ Waveform Audio Player ~~~~
                   </div>
                   <p className="text-xs text-gray-500">{previewAsset.filename} (Stereo 24-bit 48kHz)</p>
@@ -215,7 +215,7 @@ export const MediaLibraryView: React.FC = () => {
                   alert(`Downloading ${previewAsset.filename}`);
                   setPreviewAsset(null);
                 }}
-                className="px-4 py-2 bg-[#FFE600] border border-black text-xs font-bold rounded text-black"
+                className="px-4 py-2 bg-[#FBD227] border border-black text-xs font-bold rounded text-black"
               >
                 Download File
               </button>

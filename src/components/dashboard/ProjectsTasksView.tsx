@@ -51,7 +51,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
   ] as const;
 
   return (
-    <div className="p-4 sm:p-8 max-w-[88rem] mx-auto text-[#0F1B2A] space-y-6">
+    <div className="p-4 sm:p-8 max-w-[88rem] mx-auto text-[#000000] space-y-6">
       {/* Top Header with Role Indicator */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-200 pb-5">
         <div>
@@ -65,7 +65,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
               {role === "admin" ? "Studio Command • All Team Workloads" : "Delivery Floor • My Sprint Tasks"}
             </span>
           </div>
-          <h1 className="font-monument text-2xl sm:text-3xl font-black text-[#0F1B2A] tracking-tight mt-1">
+          <h1 className="font-monument text-2xl sm:text-3xl font-black text-[#000000] tracking-tight mt-1">
             {role === "admin" ? "AGENCY PROJECTS & TASK BOARD" : `SPRINT BOARD · ${activeMember.toUpperCase()}`}
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
@@ -98,7 +98,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
               type="button"
               onClick={() => setSelectedFilterAssignee("all")}
               className={`px-2.5 py-1 rounded font-bold uppercase ${
-                selectedFilterAssignee === "all" ? "bg-black text-[#FFE600]" : "text-gray-600 hover:text-black"
+                selectedFilterAssignee === "all" ? "bg-black text-[#FBD227]" : "text-gray-600 hover:text-black"
               }`}
             >
               All ({allTasks.length})
@@ -107,7 +107,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
               type="button"
               onClick={() => setSelectedFilterAssignee("Kai")}
               className={`px-2.5 py-1 rounded font-bold uppercase ${
-                selectedFilterAssignee === "Kai" ? "bg-black text-[#FFE600]" : "text-gray-600 hover:text-black"
+                selectedFilterAssignee === "Kai" ? "bg-black text-[#FBD227]" : "text-gray-600 hover:text-black"
               }`}
             >
               Kai ({allTasks.filter((t) => t.assignee.includes("Kai")).length})
@@ -116,7 +116,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
               type="button"
               onClick={() => setSelectedFilterAssignee("Ren")}
               className={`px-2.5 py-1 rounded font-bold uppercase ${
-                selectedFilterAssignee === "Ren" ? "bg-black text-[#FFE600]" : "text-gray-600 hover:text-black"
+                selectedFilterAssignee === "Ren" ? "bg-black text-[#FBD227]" : "text-gray-600 hover:text-black"
               }`}
             >
               Ren ({allTasks.filter((t) => t.assignee.includes("Ren")).length})
@@ -125,7 +125,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
               type="button"
               onClick={() => setSelectedFilterAssignee("Sora")}
               className={`px-2.5 py-1 rounded font-bold uppercase ${
-                selectedFilterAssignee === "Sora" ? "bg-black text-[#FFE600]" : "text-gray-600 hover:text-black"
+                selectedFilterAssignee === "Sora" ? "bg-black text-[#FBD227]" : "text-gray-600 hover:text-black"
               }`}
             >
               Sora ({allTasks.filter((t) => t.assignee.includes("Sora")).length})
@@ -175,7 +175,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
                   <span className="font-bold text-black">{proj.progress}%</span>
                 </div>
                 <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                  <div className="bg-[#FFE600] h-full" style={{ width: `${proj.progress}%` }} />
+                  <div className="bg-[#FBD227] h-full" style={{ width: `${proj.progress}%` }} />
                 </div>
                 <div className="flex items-center justify-between text-[0.68rem] text-gray-400 font-mono mt-2">
                   <span>Target: {proj.targetDate}</span>

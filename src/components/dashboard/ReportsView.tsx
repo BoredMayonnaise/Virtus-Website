@@ -15,14 +15,14 @@ export const ReportsView: React.FC = () => {
   const winRate = Math.round((dealsWon / (opportunities.length || 1)) * 100);
 
   const disciplineMargins = [
-    { discipline: "Brand & Creative Identity", margin: 88, color: "bg-[#FFE600]" },
-    { discipline: "Web Flagship & Next.js Builds", margin: 82, color: "bg-[#F4C05D]" },
+    { discipline: "Brand & Creative Identity", margin: 88, color: "bg-[#FBD227]" },
+    { discipline: "Web Flagship & Next.js Builds", margin: 82, color: "bg-[#FBD227]" },
     { discipline: "Interactive Motion & 3D Renders", margin: 76, color: "bg-[#DD7230]" },
     { discipline: "Automated Patient / Client Portals", margin: 85, color: "bg-[#854D27]" },
   ];
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 text-[#0F1B2A]">
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 text-[#000000]">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-200 pb-5">
         <div>
@@ -32,7 +32,7 @@ export const ReportsView: React.FC = () => {
               Operations OS • Studio Intelligence & Financial Analytics
             </span>
           </div>
-          <h1 className="font-monument text-2xl sm:text-3xl font-black text-[#0F1B2A] tracking-tight mt-1 uppercase">
+          <h1 className="font-monument text-2xl sm:text-3xl font-black text-[#000000] tracking-tight mt-1 uppercase">
             Performance Reports
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
@@ -53,7 +53,7 @@ export const ReportsView: React.FC = () => {
           <button
             type="button"
             onClick={() => alert("Exporting studio performance summary (PDF)")}
-            className="border-2 border-black bg-black text-[#FFE600] px-3.5 py-1.5 font-bold uppercase tracking-wider hover:bg-[#FFE600] hover:text-black transition-colors"
+            className="border-2 border-black bg-black text-[#FBD227] px-3.5 py-1.5 font-bold uppercase tracking-wider hover:bg-[#FBD227] hover:text-black transition-colors"
           >
             Export PDF ↓
           </button>

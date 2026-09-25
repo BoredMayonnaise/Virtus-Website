@@ -44,7 +44,7 @@ export const UsersRolesView: React.FC = () => {
   ];
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 text-[#0F1B2A]">
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 text-[#000000]">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-200 pb-5">
         <div>
@@ -54,7 +54,7 @@ export const UsersRolesView: React.FC = () => {
               Operations OS • Team Directory & Role-Based Access Control
             </span>
           </div>
-          <h1 className="font-monument text-2xl sm:text-3xl font-black text-[#0F1B2A] tracking-tight mt-1 uppercase">
+          <h1 className="font-monument text-2xl sm:text-3xl font-black text-[#000000] tracking-tight mt-1 uppercase">
             Users & Roles
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
@@ -65,7 +65,7 @@ export const UsersRolesView: React.FC = () => {
         <button
           type="button"
           onClick={() => setIsInviteOpen(true)}
-          className="border-2 border-black bg-black text-[#FFE600] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider shadow-xs hover:bg-[#FFE600] hover:text-black transition-colors"
+          className="border-2 border-black bg-black text-[#FBD227] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider shadow-xs hover:bg-[#FBD227] hover:text-black transition-colors"
         >
           + Invite Team Member
         </button>
@@ -80,7 +80,7 @@ export const UsersRolesView: React.FC = () => {
           >
             <div>
               <div className="flex items-center justify-between mb-3">
-                <div className="h-10 w-10 rounded-full bg-[#FFE600] border-2 border-black flex items-center justify-center font-black font-mono text-base text-black">
+                <div className="h-10 w-10 rounded-full bg-[#FBD227] border-2 border-black flex items-center justify-center font-black font-mono text-base text-black">
                   {m.avatar}
                 </div>
                 <span
@@ -251,7 +251,7 @@ export const UsersRolesView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-black text-[#FFE600] border-2 border-black font-bold uppercase tracking-wider hover:bg-[#FFE600] hover:text-black transition-colors"
+                  className="px-4 py-2 bg-black text-[#FBD227] border-2 border-black font-bold uppercase tracking-wider hover:bg-[#FBD227] hover:text-black transition-colors"
                 >
                   Send Invite Link
                 </button>

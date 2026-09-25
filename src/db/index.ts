@@ -704,6 +704,10 @@ class AgencyDatabase {
     return [...this.opportunities];
   }
 
+  public removeOpportunity(id: string): void {
+    this.opportunities = this.opportunities.filter((o) => o.id !== id);
+  }
+
   public addOpportunity(opp: Omit<Opportunity, "id" | "createdAt">): Opportunity {
     const newOpp: Opportunity = {
       ...opp,

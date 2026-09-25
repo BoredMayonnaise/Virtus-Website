@@ -52,7 +52,7 @@ export const ProposalsView: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 text-[#0F1B2A]">
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 text-[#000000]">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-200 pb-5">
         <div>
@@ -62,7 +62,7 @@ export const ProposalsView: React.FC = () => {
               Operations OS • Quote & Proposal Engine
             </span>
           </div>
-          <h1 className="font-monument text-2xl sm:text-3xl font-black text-[#0F1B2A] tracking-tight mt-1 uppercase">
+          <h1 className="font-monument text-2xl sm:text-3xl font-black text-[#000000] tracking-tight mt-1 uppercase">
             Proposals & Quotes
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
@@ -73,7 +73,7 @@ export const ProposalsView: React.FC = () => {
         <button
           type="button"
           onClick={() => setIsCreateModalOpen(true)}
-          className="border-2 border-black bg-black text-[#FFE600] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider shadow-xs hover:bg-[#FFE600] hover:text-black transition-colors"
+          className="border-2 border-black bg-black text-[#FBD227] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider shadow-xs hover:bg-[#FBD227] hover:text-black transition-colors"
         >
           + Create New Proposal
         </button>
@@ -159,7 +159,7 @@ export const ProposalsView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setViewingProposal(prop)}
-                className="flex-1 py-1.5 rounded bg-gray-100 hover:bg-black hover:text-[#FFE600] font-mono text-xs font-bold text-gray-800 transition-colors text-center"
+                className="flex-1 py-1.5 rounded bg-gray-100 hover:bg-black hover:text-[#FBD227] font-mono text-xs font-bold text-gray-800 transition-colors text-center"
               >
                 Inspect Proposal →
               </button>
@@ -185,7 +185,7 @@ export const ProposalsView: React.FC = () => {
           <div className="w-full max-w-2xl rounded-lg border-2 border-black bg-white p-6 shadow-2xl">
             <div className="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold bg-[#FFE600] text-black px-2 py-0.5 rounded">
+                <span className="font-mono text-xs font-bold bg-[#FBD227] text-black px-2 py-0.5 rounded">
                   {viewingProposal.proposalNumber}
                 </span>
                 <h3 className="font-mono font-black text-lg text-black uppercase">
@@ -218,7 +218,7 @@ export const ProposalsView: React.FC = () => {
                 </ul>
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-[#FEFCE8] border border-[#FFE600] rounded">
+              <div className="flex items-center justify-between p-3 bg-[#FCDB52] border border-[#FBD227] rounded">
                 <div>
                   <span className="text-[0.65rem] text-amber-800 uppercase font-bold block">Fixed Studio Investment</span>
                   <span className="font-black text-xl text-black">${viewingProposal.amount.toLocaleString()} USD</span>
@@ -362,7 +362,7 @@ export const ProposalsView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-black text-[#FFE600] border-2 border-black font-bold uppercase tracking-wider hover:bg-[#FFE600] hover:text-black transition-colors"
+                  className="px-4 py-2 bg-black text-[#FBD227] border-2 border-black font-bold uppercase tracking-wider hover:bg-[#FBD227] hover:text-black transition-colors"
                 >
                   Generate & Send
                 </button>

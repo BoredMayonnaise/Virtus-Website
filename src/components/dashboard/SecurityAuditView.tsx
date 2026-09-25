@@ -56,7 +56,7 @@ export const SecurityAuditView: React.FC = () => {
   ];
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 text-[#0F1B2A]">
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 text-[#000000]">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-200 pb-5">
         <div>
@@ -66,7 +66,7 @@ export const SecurityAuditView: React.FC = () => {
               Operations OS • Enterprise Security & Access Auditing
             </span>
           </div>
-          <h1 className="font-monument text-2xl sm:text-3xl font-black text-[#0F1B2A] tracking-tight mt-1 uppercase">
+          <h1 className="font-monument text-2xl sm:text-3xl font-black text-[#000000] tracking-tight mt-1 uppercase">
             Security & Audit Logs
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
@@ -99,7 +99,7 @@ export const SecurityAuditView: React.FC = () => {
         <button
           type="button"
           onClick={() => alert("Security scan completed: 0 vulnerabilities found. SSL certificates valid.")}
-          className="border border-black bg-black text-[#FFE600] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#FFE600] hover:text-black transition-colors shrink-0"
+          className="border border-black bg-black text-[#FBD227] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#FBD227] hover:text-black transition-colors shrink-0"
         >
           Run Security Scan ↗
         </button>
@@ -163,7 +163,7 @@ export const SecurityAuditView: React.FC = () => {
             type="button"
             disabled={testingDb}
             onClick={handleTestDb}
-            className="border border-black bg-black text-[#FFE600] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#FFE600] hover:text-black transition-colors disabled:opacity-50"
+            className="border border-black bg-black text-[#FBD227] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider hover:bg-[#FBD227] hover:text-black transition-colors disabled:opacity-50"
           >
             {testingDb ? "Pinging Neon..." : "⚡ Ping Connection"}
           </button>
@@ -171,7 +171,7 @@ export const SecurityAuditView: React.FC = () => {
             type="button"
             disabled={migratingDb}
             onClick={handleMigrateDb}
-            className="border border-black bg-[#2E1F27] text-white px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider hover:bg-black transition-colors disabled:opacity-50"
+            className="border border-black bg-[#1C1C1C] text-white px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider hover:bg-black transition-colors disabled:opacity-50"
           >
             {migratingDb ? "Migrating Schema..." : "🚀 Initialize & Seed Schema"}
           </button>

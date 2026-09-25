@@ -89,14 +89,14 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] text-[#0F1B2A] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#FFFFFF] text-[#000000] flex flex-col font-sans">
       {/* Top Global Bar */}
       <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-gray-300 bg-white px-4 sm:px-6 shadow-2xs">
         {/* Search Input or Client Branding */}
         <div className="flex items-center gap-3 w-72 sm:w-96">
           {role === "client" ? (
             <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded bg-[#2E1F27] text-[#FFE600] flex items-center justify-center font-bold text-xs font-mono">
+              <div className="h-6 w-6 rounded bg-[#1C1C1C] text-[#FBD227] flex items-center justify-center font-bold text-xs font-mono">
                 V
               </div>
               <span className="font-mono text-xs font-bold uppercase tracking-wider text-black">
@@ -128,7 +128,7 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({
               onClick={() => handleRoleChange("admin")}
               className={`px-2 py-0.5 rounded font-mono font-bold uppercase text-[0.7rem] transition-colors ${
                 role === "admin"
-                  ? "bg-[#FFE600] text-black shadow-2xs"
+                  ? "bg-[#FBD227] text-black shadow-2xs"
                   : "text-gray-600 hover:text-black"
               }`}
             >
@@ -139,7 +139,7 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({
               onClick={() => handleRoleChange("team")}
               className={`px-2 py-0.5 rounded font-mono font-bold uppercase text-[0.7rem] transition-colors ${
                 role === "team"
-                  ? "bg-[#FFE600] text-black shadow-2xs"
+                  ? "bg-[#FBD227] text-black shadow-2xs"
                   : "text-gray-600 hover:text-black"
               }`}
             >
@@ -150,7 +150,7 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({
               onClick={() => handleRoleChange("client")}
               className={`px-2 py-0.5 rounded font-mono font-bold uppercase text-[0.7rem] transition-colors ${
                 role === "client"
-                  ? "bg-[#FFE600] text-black shadow-2xs"
+                  ? "bg-[#FBD227] text-black shadow-2xs"
                   : "text-gray-600 hover:text-black"
               }`}
             >
@@ -198,7 +198,7 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({
 
           {/* User Profile Avatar */}
           <div className="flex items-center gap-2 border-l border-gray-200 pl-3">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFE600] border border-black font-bold text-xs text-black">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FBD227] border border-black font-bold text-xs text-black">
               {role === "admin" ? "P" : role === "team" ? activeTeamMember.charAt(0) : "C"}
             </div>
             <span className="hidden sm:inline text-xs font-bold font-mono">
@@ -214,7 +214,7 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({
           <button
             type="button"
             onClick={onExit}
-            className="border-2 border-black bg-black text-[#FFE600] px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider hover:bg-[#FFE600] hover:text-black transition-colors shrink-0"
+            className="border-2 border-black bg-black text-[#FBD227] px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider hover:bg-[#FBD227] hover:text-black transition-colors shrink-0"
           >
             Exit Portal ✕
           </button>
@@ -224,18 +224,18 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({
       {/* Main Body Layout */}
       {role === "client" ? (
         /* CLIENT VIEW: Pure Dedicated Client Room without Internal Agency Sidebar */
-        <main className="flex-1 overflow-y-auto bg-[#F9FAFB]">
+        <main className="flex-1 overflow-y-auto bg-[#FFFFFF]">
           <ClientRoomView initialClientId={activeClientId} />
         </main>
       ) : (
         /* ADMIN & TEAM VIEW: Internal Studio Operations with Scoped Left Sidebar */
         <div className="flex flex-1 overflow-hidden">
           {/* Left Dark Sidebar matching Image 2 */}
-          <aside className="w-56 shrink-0 bg-[#0C0C0C] text-[#A1A1AA] flex flex-col justify-between border-r border-[#27272A] select-none">
+          <aside className="w-56 shrink-0 bg-[#000000] text-[#999999] flex flex-col justify-between border-r border-[#1C1C1C] select-none">
             <div className="p-3">
               {/* Brand Header */}
-              <div className="flex items-center gap-2.5 px-3 py-4 border-b border-[#27272A] mb-3">
-                <div className="h-6 w-6 rounded bg-[#FFE600] flex items-center justify-center text-black font-black text-xs">
+              <div className="flex items-center gap-2.5 px-3 py-4 border-b border-[#1C1C1C] mb-3">
+                <div className="h-6 w-6 rounded bg-[#FBD227] flex items-center justify-center text-black font-black text-xs">
                   V
                 </div>
                 <div className="flex flex-col leading-tight">
@@ -255,7 +255,7 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({
                   <span
                     className={`text-[0.55rem] font-mono px-1 rounded font-bold ${
                       role === "admin"
-                        ? "bg-[#FFE600]/20 text-[#FFE600]"
+                        ? "bg-[#FBD227]/20 text-[#FBD227]"
                         : "bg-blue-500/20 text-blue-400"
                     }`}
                   >
@@ -273,7 +273,7 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({
                         onClick={() => setActiveTab(item.id)}
                         className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded text-xs transition-colors ${
                           isActive
-                            ? "bg-[#FFE600] text-black font-bold shadow-xs"
+                            ? "bg-[#FBD227] text-black font-bold shadow-xs"
                             : "text-gray-400 hover:text-white hover:bg-white/5 font-medium"
                         }`}
                       >
@@ -301,7 +301,7 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({
                           onClick={() => setActiveTab(item.id)}
                           className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded text-xs transition-colors ${
                             isActive
-                              ? "bg-[#FFE600] text-black font-bold"
+                              ? "bg-[#FBD227] text-black font-bold"
                               : "text-gray-400 hover:text-white hover:bg-white/5 font-medium"
                           }`}
                         >
@@ -316,7 +316,7 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({
             </div>
 
             {/* Bottom Sidebar Scoped Data Notice */}
-            <div className="p-3 border-t border-[#27272A] m-2 rounded bg-white/5">
+            <div className="p-3 border-t border-[#1C1C1C] m-2 rounded bg-white/5">
               <p className="text-[0.65rem] font-mono text-gray-400 leading-snug">
                 {role === "admin"
                   ? "Full Studio Admin: Unrestricted access across all client workspaces & financial ledgers."
@@ -326,7 +326,7 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({
           </aside>
 
           {/* Dynamic Center Workspace View */}
-          <main className="flex-1 overflow-y-auto bg-[#F9FAFB]">
+          <main className="flex-1 overflow-y-auto bg-[#FFFFFF]">
             {role === "team" ? (
               activeTab === "projects" ? (
                 <ProjectsTasksView

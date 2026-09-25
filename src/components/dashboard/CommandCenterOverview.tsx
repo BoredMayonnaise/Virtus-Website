@@ -16,14 +16,14 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
   }, []);
 
   return (
-    <div className="p-6 sm:p-10 max-w-[88rem] mx-auto text-[#0F1B2A]">
+    <div className="p-6 sm:p-10 max-w-[88rem] mx-auto text-[#000000]">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
           <span className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-gray-500 block mb-1">
             OPERATIONS OVERVIEW
           </span>
-          <h1 className="font-monument text-3xl sm:text-4xl font-black text-[#0F1B2A] tracking-tight">
+          <h1 className="font-monument text-3xl sm:text-4xl font-black text-[#000000] tracking-tight">
             YOUR COMMAND CENTER
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
@@ -35,7 +35,7 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
           <button
             type="button"
             onClick={() => onNavigate("bookings")}
-            className="inline-flex items-center gap-1.5 border border-gray-400 bg-white px-3 py-2 text-xs font-mono font-bold uppercase tracking-wider text-black shadow-xs hover:border-black hover:bg-[#FFE600] transition-all"
+            className="inline-flex items-center gap-1.5 border border-gray-400 bg-white px-3 py-2 text-xs font-mono font-bold uppercase tracking-wider text-black shadow-xs hover:border-black hover:bg-[#FBD227] transition-all"
           >
             <span>📅 Calendar</span>
           </button>
@@ -49,7 +49,7 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
           <button
             type="button"
             onClick={() => onNavigate("leads")}
-            className="inline-flex items-center gap-1.5 border-2 border-black bg-black px-3.5 py-2 text-xs font-mono font-bold uppercase tracking-wider text-[#FFE600] shadow-xs hover:bg-[#FFE600] hover:text-black transition-all"
+            className="inline-flex items-center gap-1.5 border-2 border-black bg-black px-3.5 py-2 text-xs font-mono font-bold uppercase tracking-wider text-[#FBD227] shadow-xs hover:bg-[#FBD227] hover:text-black transition-all"
           >
             <span>⚡ Open pipeline →</span>
           </button>
@@ -62,7 +62,7 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
         <div className="border border-gray-300 bg-white p-5 rounded shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs text-gray-500 font-medium">Pipeline value</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-[#FFE600]/30 text-amber-800 font-bold text-xs">
+            <div className="flex h-7 w-7 items-center justify-center rounded bg-[#FBD227]/30 text-amber-800 font-bold text-xs">
               $
             </div>
           </div>
@@ -182,7 +182,7 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
                     <div className="flex items-center gap-3">
                       <div className="flex-1 bg-gray-200 h-2 rounded-full overflow-hidden">
                         <div
-                          className="bg-[#FFE600] h-full"
+                          className="bg-[#FBD227] h-full"
                           style={{ width: `${proj.progress}%` }}
                         />
                       </div>
@@ -222,7 +222,7 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
                     className="flex items-center justify-between border-b border-gray-100 pb-2.5 last:border-b-0"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-[#FFE600]" />
+                      <span className="h-2 w-2 rounded-full bg-[#FBD227]" />
                       <span className="text-xs font-medium text-black">{t.title}</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -274,7 +274,7 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
                     href={book.meetingUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-mono text-[0.65rem] font-bold px-2 py-1 rounded bg-[#2E1F27] text-white hover:bg-[#FFE600] hover:text-black transition-colors shrink-0"
+                    className="font-mono text-[0.65rem] font-bold px-2 py-1 rounded bg-[#1C1C1C] text-white hover:bg-[#FBD227] hover:text-black transition-colors shrink-0"
                   >
                     Join
                   </a>
@@ -310,7 +310,7 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
           </div>
 
           {/* Staging Status Card (Warm Yellow Tinted from Image 2) */}
-          <div className="border border-[#F7E7A6] bg-[#FEFCE8] p-6 rounded shadow-sm">
+          <div className="border border-[#FCDB52] bg-[#FCDB52] p-6 rounded shadow-sm">
             <span className="font-mono text-[0.68rem] font-bold uppercase tracking-wider text-amber-700 block mb-2">
               STAGING STATUS
             </span>

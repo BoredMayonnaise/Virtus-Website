@@ -194,7 +194,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
               Operations OS • Calendar & Scheduling Engine
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#0F1B2A] mt-1 font-mono uppercase">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#000000] mt-1 font-mono uppercase">
             Bookings & Calendar
           </h1>
           <p className="text-xs text-gray-600 mt-0.5">
@@ -209,7 +209,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
               type="button"
               onClick={() => setCalendarView("month")}
               className={`px-3 py-1 rounded transition-colors ${
-                calendarView === "month" ? "bg-[#FFE600] text-black" : "text-gray-600 hover:text-black"
+                calendarView === "month" ? "bg-[#FBD227] text-black" : "text-gray-600 hover:text-black"
               }`}
             >
               Month View
@@ -218,7 +218,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
               type="button"
               onClick={() => setCalendarView("week")}
               className={`px-3 py-1 rounded transition-colors ${
-                calendarView === "week" ? "bg-[#FFE600] text-black" : "text-gray-600 hover:text-black"
+                calendarView === "week" ? "bg-[#FBD227] text-black" : "text-gray-600 hover:text-black"
               }`}
             >
               Week View
@@ -227,7 +227,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
               type="button"
               onClick={() => setCalendarView("agenda")}
               className={`px-3 py-1 rounded transition-colors ${
-                calendarView === "agenda" ? "bg-[#FFE600] text-black" : "text-gray-600 hover:text-black"
+                calendarView === "agenda" ? "bg-[#FBD227] text-black" : "text-gray-600 hover:text-black"
               }`}
             >
               Agenda
@@ -237,7 +237,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
           <button
             type="button"
             onClick={() => setIsScheduleModalOpen(true)}
-            className="flex items-center gap-2 border-2 border-black bg-black text-[#FFE600] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider shadow-xs hover:bg-[#FFE600] hover:text-black transition-colors"
+            className="flex items-center gap-2 border-2 border-black bg-black text-[#FBD227] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider shadow-xs hover:bg-[#FBD227] hover:text-black transition-colors"
           >
             <span>+ Schedule Meeting</span>
           </button>
@@ -249,7 +249,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs font-bold uppercase tracking-wider text-black flex items-center gap-1.5">
-              <span className="px-1.5 py-0.5 rounded bg-black text-[#FFE600] text-[0.65rem]">Cal.com</span>
+              <span className="px-1.5 py-0.5 rounded bg-black text-[#FBD227] text-[0.65rem]">Cal.com</span>
               Shareable Scheduling Links
             </span>
             <span className="text-[0.7rem] text-gray-400 font-mono hidden sm:inline">
@@ -296,7 +296,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                     setFormType(item.title);
                     setIsScheduleModalOpen(true);
                   }}
-                  className="px-2.5 py-1 rounded bg-black text-[#FFE600] font-mono text-[0.65rem] font-bold hover:bg-[#FFE600] hover:text-black transition-colors"
+                  className="px-2.5 py-1 rounded bg-black text-[#FBD227] font-mono text-[0.65rem] font-bold hover:bg-[#FBD227] hover:text-black transition-colors"
                 >
                   Book
                 </button>
@@ -371,7 +371,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                     onClick={() => setSelectedDate(cell.dateString)}
                     className={`min-h-[82px] sm:min-h-[96px] p-1.5 flex flex-col justify-between cursor-pointer transition-all ${
                       isSelected
-                        ? "bg-amber-50/70 ring-2 ring-[#FFE600] z-10"
+                        ? "bg-amber-50/70 ring-2 ring-[#FBD227] z-10"
                         : cell.isCurrentMonth
                         ? "hover:bg-gray-50"
                         : "bg-gray-50/50 text-gray-400"
@@ -382,7 +382,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                       <span
                         className={`inline-flex items-center justify-center font-mono text-xs ${
                           isToday
-                            ? "h-5 w-5 rounded-full bg-black text-[#FFE600] font-black"
+                            ? "h-5 w-5 rounded-full bg-black text-[#FBD227] font-black"
                             : isSelected
                             ? "font-black text-black"
                             : cell.isCurrentMonth
@@ -405,7 +405,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                       {dateBookings.slice(0, 2).map((item) => (
                         <div
                           key={item.id}
-                          className="px-1.5 py-0.5 rounded text-[0.62rem] font-mono truncate leading-tight bg-[#2E1F27] text-white border-l-2 border-[#FFE600]"
+                          className="px-1.5 py-0.5 rounded text-[0.62rem] font-mono truncate leading-tight bg-[#1C1C1C] text-white border-l-2 border-[#FBD227]"
                           title={`${item.time}: ${item.clientName} (${item.bookingType})`}
                         >
                           <span className="font-bold">{item.time.split("-")[0].trim()}</span> {item.clientName.split(" ")[0]}
@@ -427,7 +427,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
           <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-gray-200 text-xs font-mono text-gray-500">
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-[#FFE600] border border-black"></span>
+                <span className="h-2 w-2 rounded-full bg-[#FBD227] border border-black"></span>
                 Selected Date
               </span>
               <span className="flex items-center gap-1.5">
@@ -465,7 +465,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                   setFormDate(selectedDate);
                   setIsScheduleModalOpen(true);
                 }}
-                className="font-mono text-xs font-bold text-black bg-[#FFE600] px-2.5 py-1 rounded border border-black hover:bg-black hover:text-[#FFE600] transition-colors"
+                className="font-mono text-xs font-bold text-black bg-[#FBD227] px-2.5 py-1 rounded border border-black hover:bg-black hover:text-[#FBD227] transition-colors"
               >
                 + Add
               </button>
@@ -487,7 +487,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                     setFormDate(selectedDate);
                     setIsScheduleModalOpen(true);
                   }}
-                  className="mt-3 inline-flex items-center font-mono text-xs font-bold text-black border border-black bg-white px-3 py-1 hover:bg-[#FFE600] transition-colors"
+                  className="mt-3 inline-flex items-center font-mono text-xs font-bold text-black border border-black bg-white px-3 py-1 hover:bg-[#FBD227] transition-colors"
                 >
                   Book this date
                 </button>
@@ -525,7 +525,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                         href={item.meetingUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#2E1F27] text-white font-mono text-xs font-bold hover:bg-[#FFE600] hover:text-black transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#1C1C1C] text-white font-mono text-xs font-bold hover:bg-[#FBD227] hover:text-black transition-colors"
                       >
                         <span>📹 Join Meet</span>
                       </a>
@@ -651,7 +651,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
           <div className="w-full max-w-lg rounded-lg border-2 border-black bg-white p-6 shadow-2xl">
             <div className="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold bg-[#FFE600] text-black px-2 py-0.5 rounded">
+                <span className="font-mono text-xs font-bold bg-[#FBD227] text-black px-2 py-0.5 rounded">
                   CAL.COM SYNC
                 </span>
                 <h3 className="font-mono font-black text-lg text-black uppercase">
@@ -795,7 +795,7 @@ export const BookingsView: React.FC<BookingsViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-black text-[#FFE600] border-2 border-black font-bold uppercase tracking-wider hover:bg-[#FFE600] hover:text-black transition-colors"
+                  className="px-4 py-2 bg-black text-[#FBD227] border-2 border-black font-bold uppercase tracking-wider hover:bg-[#FBD227] hover:text-black transition-colors"
                 >
                   Confirm & Generate Meet
                 </button>

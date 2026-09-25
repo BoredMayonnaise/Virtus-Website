@@ -32,14 +32,14 @@ export const PipelineView: React.FC = () => {
   };
 
   return (
-    <div className="p-6 sm:p-10 max-w-[96rem] mx-auto text-[#0F1B2A]">
+    <div className="p-6 sm:p-10 max-w-[96rem] mx-auto text-[#000000]">
       {/* Top Banner with GHL Summary Metrics */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
           <span className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-gray-500 block mb-1">
             GHL PIPELINE MANAGEMENT
           </span>
-          <h1 className="font-monument text-3xl font-black text-[#0F1B2A] tracking-tight">
+          <h1 className="font-monument text-3xl font-black text-[#000000] tracking-tight">
             OPPORTUNITIES PIPELINE
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
@@ -59,7 +59,7 @@ export const PipelineView: React.FC = () => {
           </div>
           <div className="px-3">
             <span className="text-[0.65rem] font-mono uppercase text-gray-500 block">Win Rate</span>
-            <span className="font-mono text-lg font-bold text-[#0F1B2A]">{winRate}%</span>
+            <span className="font-mono text-lg font-bold text-[#000000]">{winRate}%</span>
           </div>
         </div>
       </div>

@@ -142,11 +142,11 @@ export const ClientRoomView: React.FC<ClientRoomViewProps> = ({
   };
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto text-[#0F1B2A] space-y-6">
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto text-[#000000] space-y-6">
       {/* Client Context Bar & Security Badge */}
       <div className="bg-white border border-gray-300 rounded-lg p-4 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-[#2E1F27] text-[#FFE600] flex items-center justify-center font-black font-mono text-sm border-2 border-black">
+          <div className="h-10 w-10 rounded-full bg-[#1C1C1C] text-[#FBD227] flex items-center justify-center font-black font-mono text-sm border-2 border-black">
             {currentClient.name.charAt(0)}
           </div>
           <div>
@@ -268,7 +268,7 @@ export const ClientRoomView: React.FC<ClientRoomViewProps> = ({
                     key={phase}
                     className={`p-3 rounded border text-left ${
                       isCurrent
-                        ? "bg-[#FEFCE8] border-[#FFE600] ring-2 ring-[#FFE600]/40"
+                        ? "bg-[#FCDB52] border-[#FBD227] ring-2 ring-[#FBD227]/40"
                         : isCompleted
                         ? "bg-gray-50 border-gray-300 text-gray-800"
                         : "bg-gray-50/50 border-gray-200 text-gray-400"
@@ -486,14 +486,14 @@ export const ClientRoomView: React.FC<ClientRoomViewProps> = ({
                         <button
                           type="button"
                           onClick={() => setApprovalStatus("approved")}
-                          className="px-5 py-2.5 bg-black text-[#FFE600] font-bold text-xs uppercase tracking-wider rounded hover:bg-gray-800 transition-colors shadow-xs"
+                          className="px-5 py-2.5 bg-black text-[#FBD227] font-bold text-xs uppercase tracking-wider rounded hover:bg-gray-800 transition-colors shadow-xs"
                         >
                           ✓ Approve Deliverable
                         </button>
                         <button
                           type="button"
                           onClick={handleOpenRevisionModal}
-                          className="px-5 py-2.5 border-2 border-black bg-white text-black font-bold text-xs uppercase tracking-wider rounded hover:bg-[#FFE600] transition-colors shadow-xs"
+                          className="px-5 py-2.5 border-2 border-black bg-white text-black font-bold text-xs uppercase tracking-wider rounded hover:bg-[#FBD227] transition-colors shadow-xs"
                         >
                           ✎ Request Revisions
                         </button>
@@ -517,7 +517,7 @@ export const ClientRoomView: React.FC<ClientRoomViewProps> = ({
                       <div className="flex items-start justify-between border-b border-gray-200 pb-4">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-[0.65rem] font-bold uppercase tracking-wider text-black bg-[#FFE600] px-2 py-0.5 rounded border border-black">
+                            <span className="font-mono text-[0.65rem] font-bold uppercase tracking-wider text-black bg-[#FBD227] px-2 py-0.5 rounded border border-black">
                               Sprint Feedback Desk
                             </span>
                             <span className="font-mono text-[0.65rem] font-bold uppercase text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300">
@@ -581,7 +581,7 @@ export const ClientRoomView: React.FC<ClientRoomViewProps> = ({
                                   onClick={() => handleToggleCategory(cat)}
                                   className={`px-3 py-1.5 rounded-full font-mono text-xs font-bold transition-all ${
                                     isSelected
-                                      ? "bg-black text-[#FFE600] border-2 border-black"
+                                      ? "bg-black text-[#FBD227] border-2 border-black"
                                       : "bg-gray-100 text-gray-700 border border-gray-300 hover:border-black"
                                   }`}
                                 >
@@ -631,7 +631,7 @@ export const ClientRoomView: React.FC<ClientRoomViewProps> = ({
                                     revisionPriority === p.key
                                       ? p.key === "blocker"
                                         ? "bg-rose-100 border-rose-500 text-rose-900 font-bold ring-2 ring-rose-500/30"
-                                        : "bg-[#FFE600]/30 border-black text-black font-bold ring-2 ring-black/20"
+                                        : "bg-[#FBD227]/30 border-black text-black font-bold ring-2 ring-black/20"
                                       : "bg-gray-50 border-gray-300 text-gray-600 hover:border-black"
                                   }`}
                                 >
@@ -744,11 +744,11 @@ export const ClientRoomView: React.FC<ClientRoomViewProps> = ({
                           <button
                             type="submit"
                             disabled={isSubmittingRevision || !revisionDetails.trim()}
-                            className="px-6 py-2.5 bg-black text-[#FFE600] font-mono text-xs font-bold uppercase tracking-wider rounded hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
+                            className="px-6 py-2.5 bg-black text-[#FBD227] font-mono text-xs font-bold uppercase tracking-wider rounded hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
                           >
                             {isSubmittingRevision ? (
                               <>
-                                <span className="h-3 w-3 rounded-full border-2 border-[#FFE600] border-t-transparent animate-spin" />
+                                <span className="h-3 w-3 rounded-full border-2 border-[#FBD227] border-t-transparent animate-spin" />
                                 <span>Logging Revisions...</span>
                               </>
                             ) : (
@@ -771,7 +771,7 @@ export const ClientRoomView: React.FC<ClientRoomViewProps> = ({
                 </h3>
                 <div className="space-y-3 text-xs">
                   <div className="flex items-center gap-2.5 p-2 rounded bg-gray-50 border border-gray-200">
-                    <div className="h-7 w-7 rounded-full bg-black text-[#FFE600] flex items-center justify-center font-bold text-xs">
+                    <div className="h-7 w-7 rounded-full bg-black text-[#FBD227] flex items-center justify-center font-bold text-xs">
                       P
                     </div>
                     <div>
@@ -794,7 +794,7 @@ export const ClientRoomView: React.FC<ClientRoomViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setActiveTab("meetings")}
-                    className="w-full text-center py-2 rounded bg-[#FFE600] border border-black font-mono text-xs font-bold text-black hover:bg-black hover:text-[#FFE600] transition-colors"
+                    className="w-full text-center py-2 rounded bg-[#FBD227] border border-black font-mono text-xs font-bold text-black hover:bg-black hover:text-[#FBD227] transition-colors"
                   >
                     Schedule Direct Sync →
                   </button>
@@ -866,7 +866,7 @@ export const ClientRoomView: React.FC<ClientRoomViewProps> = ({
                   <button
                     type="button"
                     onClick={() => alert(`Starting download for ${item.filename}`)}
-                    className="px-3 py-1 bg-white hover:bg-[#FFE600] border border-gray-300 font-mono text-xs font-bold rounded transition-colors"
+                    className="px-3 py-1 bg-white hover:bg-[#FBD227] border border-gray-300 font-mono text-xs font-bold rounded transition-colors"
                   >
                     Download ↓
                   </button>
@@ -921,7 +921,7 @@ export const ClientRoomView: React.FC<ClientRoomViewProps> = ({
                     <button
                       type="button"
                       onClick={() => alert(`Opening secure checkout for ${inv.invoiceNumber} ($${inv.amount.toLocaleString()})`)}
-                      className="w-full py-2 bg-[#FFE600] border border-black text-black font-bold text-xs uppercase font-mono tracking-wider rounded hover:bg-black hover:text-[#FFE600] transition-colors"
+                      className="w-full py-2 bg-[#FBD227] border border-black text-black font-bold text-xs uppercase font-mono tracking-wider rounded hover:bg-black hover:text-[#FBD227] transition-colors"
                     >
                       Pay via Stripe →
                     </button>
@@ -960,7 +960,7 @@ export const ClientRoomView: React.FC<ClientRoomViewProps> = ({
               href="https://cal.com/thevirtuslabs/discovery"
               target="_blank"
               rel="noreferrer"
-              className="px-3 py-1.5 bg-black text-[#FFE600] font-mono text-xs font-bold uppercase tracking-wider rounded hover:bg-[#FFE600] hover:text-black transition-colors"
+              className="px-3 py-1.5 bg-black text-[#FBD227] font-mono text-xs font-bold uppercase tracking-wider rounded hover:bg-[#FBD227] hover:text-black transition-colors"
             >
               + Book New Call
             </a>
@@ -994,7 +994,7 @@ export const ClientRoomView: React.FC<ClientRoomViewProps> = ({
                     href={b.meetingUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded bg-[#2E1F27] text-white font-mono text-xs font-bold hover:bg-[#FFE600] hover:text-black transition-colors shrink-0"
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded bg-[#1C1C1C] text-white font-mono text-xs font-bold hover:bg-[#FBD227] hover:text-black transition-colors shrink-0"
                   >
                     <span>📹 Join Video Call</span>
                   </a>
