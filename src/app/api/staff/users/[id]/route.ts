@@ -10,6 +10,8 @@ import {
   updateStaff,
 } from "@/lib/staffStore";
 
+const TEAM_PROFILE_LABELS = ["Kai (Brand Lead)", "Ren (Frontend)", "Sora (UX)"];
+
 export const dynamic = "force-dynamic";
 
 type Action = "set_role" | "disable" | "enable" | "sign_out" | "reset_link" | "set_label";
@@ -21,7 +23,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { id } = await params;
   let body: { action?: Action; role?: unknown; memberLabel?: unknown };
   try {
-    body = await request.json();
+    const parsed: unknown = await request.json();
+    if (!parsed || typeof parsed !== "object") throw new Error("bad body");
+    body = parsed as typeof body;
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid request." }, { status: 400 });
   }
@@ -63,6 +67,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
       case "set_label": {
         const label = typeof body.memberLabel === "string" ? body.memberLabel.trim().slice(0, 120) : "";
+        if (label && !TEAM_PROFILE_LABELS.includes(label)) return bad("Choose one of the listed task board profiles.");
         const updated = await updateStaff(id, { memberLabel: label || null });
         await addAudit(admin.email, "set_team_profile", `${target.email} -> ${label || "none"}`);
         return NextResponse.json({ ok: true, data: updated && toSummary(updated) });

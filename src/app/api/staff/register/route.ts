@@ -6,6 +6,7 @@ import {
   hashPassword,
   hashSecret,
   homeFor,
+  allowedEmailDomains,
   isAllowedEmail,
   normalizeEmail,
   passwordProblem,
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
       { status: 429, headers: { "Retry-After": "3600" } }
     );
   }
+  // Only count attempts that probe invitations or emails. Validation typos must not lock a real invitee out.
   const reject = (status: number, error: string, field?: string) => {
     recordFailure(ipKey, HOUR_MS);
     return fail(status, error, field);
@@ -50,18 +52,20 @@ export async function POST(request: Request) {
 
   let body: Record<string, unknown>;
   try {
-    body = await request.json();
+    const parsed: unknown = await request.json();
+    if (!parsed || typeof parsed !== "object") return reject(400, "Invalid request.");
+    body = parsed as Record<string, unknown>;
   } catch {
     return reject(400, "Invalid request.");
   }
 
   const name = validateName(body.name);
-  if (!name) return reject(400, "Enter your Discord name.", "name");
+  if (!name) return fail(400, "Enter your Discord name.", "name");
   const email = normalizeEmail(body.email);
-  if (!email) return reject(400, "Enter a valid email address.", "email");
-  if (!isAllowedEmail(email)) return reject(400, "Use your Gmail address to register.", "email");
+  if (!email) return fail(400, "Enter a valid email address.", "email");
+  if (!isAllowedEmail(email, await allowedEmailDomains())) return fail(400, "Use your Gmail address to register.", "email");
   const problem = passwordProblem(body.password, email, name);
-  if (problem) return reject(400, problem, "password");
+  if (problem) return fail(400, problem, "password");
 
   try {
     // Work out the role from either a personal invite or the shared env code.
@@ -82,7 +86,14 @@ export async function POST(request: Request) {
 
     if (inviteId && !(await consumeInvite(inviteId))) return reject(403, BAD_INVITE, "code");
 
-    const created = await createStaff({ name, email, passwordHash: await hashPassword(body.password as string), role });
+    let created;
+    try {
+      created = await createStaff({ name, email, passwordHash: await hashPassword(body.password as string), role });
+    } catch (err) {
+      // Do not burn a single-use invite when the account was never created.
+      if (inviteId) await restoreInvite(inviteId).catch(() => undefined);
+      throw err;
+    }
     if (!created) {
       if (inviteId) await restoreInvite(inviteId);
       return reject(409, "An account with this email already exists. Log in instead.", "email");

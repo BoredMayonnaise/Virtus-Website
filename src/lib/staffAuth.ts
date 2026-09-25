@@ -11,6 +11,7 @@ import {
 } from "@/lib/session";
 import { getStaffById, type StaffRole, type StaffUser } from "@/lib/staffStore";
 import { hashToken } from "@/lib/tokens";
+import { getAllowedEmailDomains, getSettings, verifySecretSalted } from "@/lib/settingsStore";
 
 const PBKDF2_ITERATIONS = 210_000;
 const enc = new TextEncoder();
@@ -56,12 +57,8 @@ export function dummyPasswordHash(): Promise<string> {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function allowedEmailDomains(): string[] {
-  return (process.env.STAFF_EMAIL_DOMAINS || "gmail.com,googlemail.com")
-    .split(",")
-    .map((d) => d.trim().toLowerCase())
-    .filter(Boolean);
-}
+/** Allowed sign-up domains: the Settings value when saved, otherwise STAFF_EMAIL_DOMAINS, otherwise Gmail. */
+export const allowedEmailDomains = getAllowedEmailDomains;
 
 /** Lowercases, and for Gmail removes dots and +tags so one mailbox cannot register twice. Null if invalid. */
 export function normalizeEmail(input: unknown): string | null {
@@ -77,9 +74,8 @@ export function normalizeEmail(input: unknown): string | null {
   return `${local}@${domain}`;
 }
 
-export function isAllowedEmail(email: string): boolean {
+export function isAllowedEmail(email: string, allowed: string[]): boolean {
   const domain = email.split("@")[1];
-  const allowed = allowedEmailDomains();
   return allowed.includes(domain) || (domain === "gmail.com" && allowed.includes("googlemail.com"));
 }
 
@@ -107,11 +103,21 @@ export function passwordProblem(password: unknown, email: string, name: string):
 /** Resolves an environment invitation code to a role, comparing every secret in constant time. */
 export async function roleForInviteCode(code: unknown): Promise<StaffRole | null> {
   if (typeof code !== "string" || code.length === 0 || code.length > 200) return null;
+  // A code saved in Settings (stored only as a salted hash) replaces the environment variable for that role.
+  const saved = await getSettings();
   const adminCode = process.env.ADMIN_INVITE_CODE;
   const teamCode = process.env.STAFF_INVITE_CODE;
   const [isAdmin, isTeam] = await Promise.all([
-    adminCode ? safeEqual(code, adminCode) : Promise.resolve(false),
-    teamCode ? safeEqual(code, teamCode) : Promise.resolve(false),
+    saved.inviteAdmin
+      ? verifySecretSalted(code, saved.inviteAdmin.value)
+      : adminCode
+      ? safeEqual(code, adminCode)
+      : Promise.resolve(false),
+    saved.inviteTeam
+      ? verifySecretSalted(code, saved.inviteTeam.value)
+      : teamCode
+      ? safeEqual(code, teamCode)
+      : Promise.resolve(false),
   ]);
   return isAdmin ? "admin" : isTeam ? "team" : null;
 }

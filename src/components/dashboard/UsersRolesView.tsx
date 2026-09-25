@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { Icon } from "@/components/icons/Icon";
+import { SkeletonRows } from "./Skeleton";
 import { Chip, Modal, PageHeader, Panel, btnDark, btnGhost, btnPrimary, fieldClass, labelClass } from "./ui";
 
 interface StaffRow {
@@ -53,6 +54,7 @@ export const UsersRolesView: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [inviteLoadError, setInviteLoadError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -75,12 +77,23 @@ export const UsersRolesView: React.FC = () => {
       setCurrentId(u.data!.currentId);
     }
     if (i.ok) setInvites(i.data!);
+    else setInviteLoadError(i.error ?? "Could not load pending invites.");
     setLoading(false);
   }, []);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  const revokeInvite = async (id: string, email: string | null) => {
+    if (busyId || !window.confirm(`Revoke the invite for ${email ?? "any Gmail address"}? The link stops working.`)) return;
+    setBusyId(id);
+    setNotice(null);
+    const res = await api<unknown>(`/api/staff/invites/${encodeURIComponent(id)}`, { method: "DELETE" });
+    setBusyId(null);
+    setNotice(res.ok ? "Invite revoked." : res.error ?? "Could not revoke the invite.");
+    await load();
+  };
 
   const act = async (id: string, body: Record<string, unknown>, success: string) => {
     if (busyId) return;
@@ -113,6 +126,10 @@ export const UsersRolesView: React.FC = () => {
   const createInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inviteSubmitting) return;
+    if (inviteRole === "admin" && !inviteEmail.trim()) {
+      setInviteError("Admin invites must be tied to an email address.");
+      return;
+    }
     setInviteSubmitting(true);
     setInviteError(null);
     const res = await api<{ token: string; email: string | null; role: string; expiresAt: string }>("/api/staff/invites", {
@@ -150,7 +167,10 @@ export const UsersRolesView: React.FC = () => {
         title="Staff & access"
         description="Everyone signs in with their own account. Invite people by Gmail, set their role, and remove access in one click."
         actions={
-          <button type="button" onClick={() => setInviteOpen(true)} className={btnPrimary}>
+          <button type="button" onClick={() => {
+            setInviteError(null);
+            setInviteOpen(true);
+          }} className={btnPrimary}>
             <Icon name="user-plus" />
             Invite staff
           </button>
@@ -160,7 +180,10 @@ export const UsersRolesView: React.FC = () => {
       {notice && (
         <p role="status" className="flex items-center gap-3 border-l-4 border-[#FBD227] bg-black px-4 py-3 font-sans text-sm font-semibold text-white">
           <Icon name="check-circle" className="h-5 w-5 text-[#FBD227]" />
-          {notice}
+          <span className="flex-1">{notice}</span>
+          <button type="button" onClick={() => setNotice(null)} className="text-xs font-bold uppercase text-[#FBD227] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FBD227]">
+            Dismiss
+          </button>
         </p>
       )}
       {error && (
@@ -184,14 +207,10 @@ export const UsersRolesView: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y-2 divide-black">
-              {loading && (
-                <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center font-semibold">Loading staff…</td>
-                </tr>
-              )}
+              {loading && <SkeletonRows rows={4} cols={6} />}
               {!loading && users.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center font-semibold">No staff accounts yet.</td>
+                  <td colSpan={6} className="px-4 py-8 text-center font-semibold">{error ? "Staff could not be loaded." : "No staff accounts yet."}</td>
                 </tr>
               )}
               {users.map((u) => {
@@ -212,7 +231,10 @@ export const UsersRolesView: React.FC = () => {
                         id={`role-${u.id}`}
                         value={u.role}
                         disabled={busy || isSelf}
-                        onChange={(e) => act(u.id, { action: "set_role", role: e.target.value }, `${u.name} is now ${e.target.value === "admin" ? "an admin" : "a team member"}.`)}
+                        onChange={(e) => {
+                          if (e.target.value === "admin" && !window.confirm(`Make ${u.name} an admin? Admins can see financials, clients and staff.`)) return;
+                          void act(u.id, { action: "set_role", role: e.target.value }, `${u.name} is now ${e.target.value === "admin" ? "an admin" : "a team member"}.`);
+                        }}
                         className={`${fieldClass} !w-auto`}
                       >
                         <option value="team">Team</option>
@@ -281,6 +303,7 @@ export const UsersRolesView: React.FC = () => {
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel>
           <h3 className="font-monument text-base font-bold uppercase">Pending invites</h3>
+          {inviteLoadError && <p role="alert" className="mt-3 font-sans text-sm font-semibold">{inviteLoadError}</p>}
           {invites.length === 0 ? (
             <p className="mt-3 font-sans text-sm text-[#333333]">No open invites. Create one to bring someone in.</p>
           ) : (
@@ -291,6 +314,14 @@ export const UsersRolesView: React.FC = () => {
                   <span className="flex items-center gap-2">
                     <Chip tone={i.role === "admin" ? "black" : "plain"}>{i.role}</Chip>
                     <span className="text-xs font-semibold">Expires {when(i.expiresAt)}</span>
+                    <button
+                      type="button"
+                      disabled={Boolean(busyId)}
+                      onClick={() => revokeInvite(i.id, i.email)}
+                      className="text-xs font-bold uppercase underline decoration-2 underline-offset-4 hover:text-[#DD7230] focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
+                    >
+                      Revoke
+                    </button>
                   </span>
                 </li>
               ))}

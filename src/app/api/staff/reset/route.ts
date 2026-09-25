@@ -23,7 +23,9 @@ export async function POST(request: Request) {
 
   let body: { token?: unknown; password?: unknown };
   try {
-    body = await request.json();
+    const parsed: unknown = await request.json();
+    if (!parsed || typeof parsed !== "object") throw new Error("bad body");
+    body = parsed as typeof body;
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid request." }, { status: 400 });
   }

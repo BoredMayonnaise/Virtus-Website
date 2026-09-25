@@ -22,7 +22,14 @@ const nextSteps = [
 
 const formatMoney = (n: number) => `$${n.toLocaleString("en-US")}`;
 const formatDate = (iso?: string) =>
-  iso ? new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : null;
+  iso
+    ? new Date(iso).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        ...(/^\d{4}-\d{2}-\d{2}$/.test(iso) ? { timeZone: "UTC" } : {}),
+      })
+    : null;
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -57,25 +64,28 @@ export default async function TrackPage({
   const result = await getTrackData(token);
 
   // No dead end: unknown, expired or missing links land on login, which also offers "Start a project".
-  if (!result.ok) redirect("/client/login?reason=link");
+  if (!result.ok) redirect(`/client/login?reason=${result.reason === "unavailable" ? "unavailable" : "link"}`);
 
-  const { clientName, company, invoice, project } = result.data;
+  const { clientName, contactName, company, invoice, project } = result.data;
   const paidDate = formatDate(invoice?.paidAt);
-  const firstName = clientName.split(" ")[0];
+  // Same greeting as the dashboard: the contact person, not the account name.
+  const firstName =
+    contactName.replace(/^(dr|mr|mrs|ms)\.?\s+/i, "").split(" ")[0] || clientName.split(" ")[0] || "there";
 
   return (
     <Shell>
       <div className="flex items-center gap-4">
         <span aria-hidden="true" className="block h-1 w-12 bg-[#FBD227]" />
-        <span className="font-sans text-eyebrow font-bold uppercase">Payment confirmed</span>
+        <span className="font-sans text-eyebrow font-bold uppercase">{invoice ? "Payment confirmed" : "Project room ready"}</span>
       </div>
 
       <h1 className="mt-6 font-monument text-[clamp(2.25rem,7vw,4rem)] font-bold uppercase leading-[1.1]">
         Welcome, <span className="text-[#FBD227]">{firstName}.</span>
       </h1>
       <p className="mt-5 max-w-[56ch] font-sans text-lg leading-[1.5]">
-        Thank you, {company}. Your payment is received and your project room is ready. Here is what happens
-        next.
+        {invoice
+          ? `Thank you, ${company}. Your payment is received and your project room is ready. Here is what happens next.`
+          : `Welcome, ${company}. Your project room is ready. Here is what happens next.`}
       </p>
 
       {(invoice || project) && (

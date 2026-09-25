@@ -28,9 +28,9 @@ export function StaffLoginForm({ next }: { next?: string }) {
       });
       const body = await res.json().catch(() => null);
       if (res.ok && body?.ok) {
-        // Admins may land anywhere; team members can only use /team.
+        // Each role has one workspace: admins /admin, team members /team.
         const home = body.data.redirect as string;
-        const target = next && (next === home || (next === "/team" && home === "/admin")) ? next : home;
+        const target = next === home ? next : home;
         router.replace(target);
         router.refresh();
         return;

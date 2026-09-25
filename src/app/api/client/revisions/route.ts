@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getClientSessionId } from "@/lib/clientSession";
-import { getClientPortalData, saveRevision } from "@/lib/clientPortal";
+import { PortalUnavailableError, getClientPortalData, saveRevision } from "@/lib/clientPortal";
+import { isBlocked, recordFailure } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -21,13 +22,21 @@ export async function POST(request: Request) {
   const clientId = await getClientSessionId();
   if (!clientId) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
+  // Per-client cap: 10 requests per hour.
+  const writeKey = `client-revision:${clientId}`;
+  if (isBlocked(writeKey, 10)) {
+    return NextResponse.json({ ok: false, error: "Too many requests. Try again later." }, { status: 429 });
+  }
+
   const raw = await request.text();
-  if (raw.length > MAX_BODY_BYTES) {
+  if (Buffer.byteLength(raw, "utf8") > MAX_BODY_BYTES) {
     return NextResponse.json({ ok: false, error: "Request too large" }, { status: 413 });
   }
   let body: Record<string, unknown>;
   try {
-    body = JSON.parse(raw);
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") throw new Error("bad body");
+    body = parsed as Record<string, unknown>;
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
   }
@@ -44,25 +53,37 @@ export async function POST(request: Request) {
   const referenceUrl = typeof body.referenceUrl === "string" ? body.referenceUrl.trim().slice(0, 500) : "";
 
   if (!details || !targetArea || categories.length === 0 || !priority) {
-    return NextResponse.json({ ok: false, error: "Please complete the required fields." }, { status: 400 });
+    const missing = [
+      !details && "what to change",
+      !targetArea && "where it applies",
+      categories.length === 0 && "a category",
+      !priority && "a priority",
+    ].filter(Boolean);
+    return NextResponse.json({ ok: false, error: `Please add ${missing.join(", ")}.` }, { status: 400 });
   }
   if (referenceUrl && !/^https?:\/\//i.test(referenceUrl)) {
     return NextResponse.json({ ok: false, error: "Reference link must start with http:// or https://" }, { status: 400 });
   }
 
-  const portal = await getClientPortalData(clientId);
-  if (!portal) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  try {
+    const portal = await getClientPortalData(clientId);
+    if (!portal) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
-  const ticket = await saveRevision({
-    clientId,
-    categories,
-    targetArea,
-    priority: priority as "routine" | "important" | "blocker",
-    details,
-    referenceUrl,
-    attachments,
-    submittedBy: portal.client.contactName,
-    submittedEmail: portal.client.email,
-  });
-  return NextResponse.json({ ok: true, data: ticket });
+    const ticket = await saveRevision({
+      clientId,
+      categories,
+      targetArea,
+      priority: priority as "routine" | "important" | "blocker",
+      details,
+      referenceUrl,
+      attachments,
+      submittedBy: portal.client.contactName,
+      submittedEmail: portal.client.email,
+    });
+    recordFailure(writeKey, 60 * 60 * 1000);
+    return NextResponse.json({ ok: true, data: ticket });
+  } catch (err) {
+    if (err instanceof PortalUnavailableError) return NextResponse.json({ ok: false, error: err.message }, { status: 503 });
+    throw err;
+  }
 }

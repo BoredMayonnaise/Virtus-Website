@@ -12,7 +12,10 @@ export const btnDark =
 export const btnGhost =
   "inline-flex items-center justify-center gap-2 border-2 border-black bg-white px-4 py-2 font-sans text-xs font-bold uppercase tracking-[0.12em] text-black transition-colors hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-black";
 export const fieldClass =
-  "w-full border-2 border-black bg-white px-3 py-2 font-sans text-sm text-black placeholder-[#666666] focus:outline-none focus:ring-2 focus:ring-[#FBD227] read-only:bg-[#F4F4F4]";
+  "w-full border-2 border-black bg-white px-3 py-2 font-sans text-sm text-black placeholder-[#666666] focus:outline-none focus:ring-2 focus:ring-[#FBD227] [&[readonly]]:bg-[#F4F4F4]";
+/** Small inline select or input, for filters and per-row controls. */
+export const fieldCompact =
+  "border-2 border-black bg-white px-2 py-1 font-sans text-xs font-semibold text-black focus:outline-none focus:ring-2 focus:ring-[#FBD227] disabled:opacity-50";
 export const labelClass = "mb-1.5 block font-sans text-xs font-bold uppercase tracking-[0.12em] text-black";
 
 export function PageHeader({
@@ -33,7 +36,7 @@ export function PageHeader({
           <span aria-hidden="true" className="block h-1 w-10 bg-[#FBD227]" />
           <span className="font-sans text-xs font-bold uppercase tracking-[0.16em]">{eyebrow}</span>
         </div>
-        <h2 className="mt-2 font-monument text-2xl font-bold uppercase leading-tight sm:text-3xl">{title}</h2>
+        <h1 className="mt-2 font-monument text-2xl font-bold uppercase leading-tight sm:text-3xl">{title}</h1>
         {description && <p className="mt-2 max-w-[62ch] font-sans text-sm leading-relaxed text-[#333333]">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -71,11 +74,14 @@ export function Modal({
   onClose,
   title,
   children,
+  dismissible = true,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  /** When false, Escape and backdrop clicks do nothing. Use for one-time secrets. The close button still calls onClose. */
+  dismissible?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -91,11 +97,14 @@ export function Modal({
     <dialog
       ref={ref}
       onClose={onClose}
+      onCancel={(e) => {
+        if (!dismissible) e.preventDefault();
+      }}
       onClick={(e) => {
-        if (e.target === ref.current) onClose(); // backdrop click
+        if (dismissible && e.target === ref.current) onClose(); // backdrop click
       }}
       aria-labelledby={titleId}
-      className="m-auto w-[calc(100%-2rem)] max-w-lg border-4 border-[#FBD227] bg-white p-0 text-black backdrop:bg-black/80"
+      className="m-auto w-[calc(100%-2rem)] max-w-lg border-4 border-[#FBD227] bg-white p-0 text-black [color-scheme:light] backdrop:bg-black/80"
     >
       {open && (
         <div>

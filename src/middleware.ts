@@ -16,6 +16,9 @@ const PUBLIC_API = new Set([
   "/api/staff/invite-info",
 ]);
 
+// Staff API routes team members may call. Every other non-public /api route is admin only.
+const TEAM_API = new Set(["/api/demo/status"]);
+
 function applySecurityHeaders(response: NextResponse, pathname: string): NextResponse {
   response.headers.set("X-DNS-Prefetch-Control", "on");
   response.headers.set(
@@ -31,17 +34,18 @@ function applySecurityHeaders(response: NextResponse, pathname: string): NextRes
   );
 
   // Never leak the client token via Referer
-  if (pathname.startsWith("/track") || pathname.startsWith("/client")) {
+  const under = (base: string) => pathname === base || pathname.startsWith(`${base}/`);
+  if (under("/track") || under("/client")) {
     response.headers.set("Referrer-Policy", "no-referrer");
   }
 
   // Authenticated surfaces must never be cached by browsers or shared caches
   if (
-    pathname.startsWith("/client") ||
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/team") ||
-    pathname.startsWith("/staff") ||
-    pathname.startsWith("/track") ||
+    under("/client") ||
+    under("/admin") ||
+    under("/team") ||
+    under("/staff") ||
+    under("/track") ||
     pathname.startsWith("/api/")
   ) {
     response.headers.set("Cache-Control", "no-store");
@@ -76,11 +80,8 @@ export async function middleware(request: NextRequest) {
   const isClientApi = pathname.startsWith("/api/client/") && !PUBLIC_API.has(pathname);
   const isStaffApi = pathname.startsWith("/api/") && !pathname.startsWith("/api/client/") && !PUBLIC_API.has(pathname);
 
-  // Signed-in staff have no reason to see the login or register screens.
-  if (pathname === "/staff/login" || pathname === "/staff/register") {
-    const session = await verifySession(request.cookies.get(STAFF_COOKIE)?.value, ["admin", "team"]);
-    if (session) return redirectTo(request, session.role === "admin" ? "/admin" : "/team");
-  }
+  // Signed-in staff are sent home by the login page itself, which re-checks the account.
+  // A signature-only check here loops forever when the account was disabled or signed out.
 
   if (isClientPage || isClientApi) {
     const session = await verifySession(request.cookies.get(CLIENT_COOKIE)?.value, "client");
@@ -95,8 +96,12 @@ export async function middleware(request: NextRequest) {
       url.search = `?next=${encodeURIComponent(pathname.startsWith("/team") ? "/team" : "/admin")}`;
       return applySecurityHeaders(NextResponse.redirect(url), pathname);
     }
-    const adminOnly = isStaffApi || pathname === "/admin" || pathname.startsWith("/admin/");
+    const adminOnly = (isStaffApi && !TEAM_API.has(pathname)) || pathname === "/admin" || pathname.startsWith("/admin/");
     if (adminOnly && session.role !== "admin") return isStaffApi ? unauthorized(pathname) : redirectTo(request, "/team");
+    // Admins have their own workspace. /team is for team members and their assigned work only.
+    if (!isStaffApi && session.role === "admin" && (pathname === "/team" || pathname.startsWith("/team/"))) {
+      return redirectTo(request, "/admin");
+    }
   }
 
   return applySecurityHeaders(NextResponse.next(), pathname);

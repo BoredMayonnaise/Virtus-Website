@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
+import { db } from "@/db";
+import { PageSkeleton } from "./Skeleton";
 import { Logo } from "@/components/public/Logo";
 import { Icon, type IconName } from "@/components/icons/Icon";
 import { CommandCenterOverview } from "./CommandCenterOverview";
@@ -31,8 +32,6 @@ export interface StaffIdentity {
 
 interface OperationsOSProps {
   staff: StaffIdentity;
-  /** Which workspace the page opens in. Team members are always locked to "team". */
-  initialRole?: PortalRole;
   onLogout: () => void;
 }
 
@@ -71,37 +70,77 @@ const teamWorkspaceItems: NavItem[] = [
   { id: "library", label: "Studio assets", icon: "library" },
 ];
 
-export const OperationsOS: React.FC<OperationsOSProps> = ({ staff, initialRole = "admin", onLogout }) => {
-  const canSwitchRole = staff.role === "admin";
-  const [role, setRole] = useState<PortalRole>(canSwitchRole ? initialRole : "team");
+export const OperationsOS: React.FC<OperationsOSProps> = ({ staff, onLogout }) => {
+  // The workspace is fixed by the signed-in role. There is no switching between admin and team views.
+  const isAdmin = staff.role === "admin";
+  const role: PortalRole = staff.role;
   const [activeTab, setActiveTab] = useState<string>(role === "team" ? "tasks" : "overview");
   const [navOpen, setNavOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-  const [dbStatus, setDbStatus] = useState<{ configured?: boolean; latencyMs?: number } | null>(null);
+  const [dbStatus, setDbStatus] = useState<{ configured?: boolean; latencyMs?: number; unknown?: boolean } | null>(null);
+  const [isDesktop, setIsDesktop] = useState(true);
+  // The views read a per-browser store that starts empty. Sample data is added only when the server has it loaded.
+  const [dataReady, setDataReady] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/demo/status")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body) => {
+        if (body?.ok && body.data?.loaded) db.loadDemoData();
+      })
+      .catch(() => undefined)
+      .finally(() => setDataReady(true));
+  }, []);
   // Team floor identity: the profile an admin assigned, otherwise the person's own name.
   const [activeTeamMember, setActiveTeamMember] = useState<string>(
-    staff.memberLabel ?? (canSwitchRole ? "Kai (Brand Lead)" : staff.name)
+    staff.memberLabel ?? (isAdmin ? "Kai (Brand Lead)" : staff.name)
   );
 
   useEffect(() => {
-    if (!canSwitchRole) return; // /api/db/init is admin only
+    if (!isAdmin) return; // /api/db/init is admin only
     fetch("/api/db/init")
-      .then((res) => res.json())
-      .then((data) => setDbStatus(data))
-      .catch(() => setDbStatus({ configured: false, latencyMs: 0 }));
-  }, [canSwitchRole]);
+      .then(async (res) => {
+        // A 401 or 500 is not a config state. Do not report it as "Local store".
+        const data = await res.json().catch(() => null);
+        setDbStatus(res.ok && data ? data : { unknown: true });
+      })
+      .catch(() => setDbStatus({ unknown: true }));
+  }, [isAdmin]);
+
+  // Deep links: the open tab lives in the URL hash so reload and the back button keep it.
+  useEffect(() => {
+    const fromHash = window.location.hash.replace(/^#/, "");
+    const valid = (role === "admin" ? [...adminWorkspaceItems, ...adminManageItems] : teamWorkspaceItems).some(
+      (i) => i.id === fromHash
+    );
+    if (valid) setActiveTab(fromHash);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    window.history.replaceState(null, "", `${window.location.pathname}#${activeTab}`);
+  }, [activeTab]);
+
+  // The sidebar is always visible from md up. Below that it is an off-canvas drawer.
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 768px)");
+    const sync = () => setIsDesktop(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setNavOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navOpen]);
 
   const activeSidebarItems = role === "admin" ? adminWorkspaceItems : teamWorkspaceItems;
   const activeLabel =
     [...adminWorkspaceItems, ...adminManageItems, ...teamWorkspaceItems].find((i) => i.id === activeTab)?.label ??
     "Overview";
-
-  const handleRoleChange = (newRole: PortalRole) => {
-    if (!canSwitchRole) return;
-    setRole(newRole);
-    setActiveTab(newRole === "team" ? "tasks" : "overview");
-    setNavOpen(false);
-  };
 
   const selectTab = (id: string) => {
     setActiveTab(id);
@@ -136,7 +175,7 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({ staff, initialRole =
   const initial = staff.name.trim().charAt(0).toUpperCase() || "V";
 
   return (
-    <div className="flex h-screen flex-col bg-white font-sans text-black">
+    <div className="flex h-dvh flex-col bg-white font-sans text-black [color-scheme:light]">
       {/* Top bar */}
       <header className="z-30 flex h-16 w-full shrink-0 items-center justify-between gap-3 border-b-2 border-black bg-white px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
@@ -153,36 +192,30 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({ staff, initialRole =
             <p className="truncate font-sans text-xs font-bold uppercase tracking-[0.16em] text-[#666666]">
               {role === "admin" ? "Operations" : "Delivery floor"}
             </p>
-            <h1 className="truncate font-monument text-base font-bold uppercase leading-tight sm:text-lg">{activeLabel}</h1>
+            <p className="truncate font-monument text-base font-bold uppercase leading-tight sm:text-lg">{activeLabel}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          {canSwitchRole && (
-            <div role="group" aria-label="Workspace view" className="hidden items-stretch border-2 border-black sm:flex">
-              {(["admin", "team"] as const).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => handleRoleChange(r)}
-                  aria-pressed={role === r}
-                  className={`px-3 py-1.5 font-sans text-xs font-bold uppercase tracking-[0.12em] transition-colors focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[-3px] focus-visible:outline-black ${
-                    role === r ? "bg-black text-white" : "bg-white text-black hover:bg-[#FBD227]"
-                  }`}
-                >
-                  {r === "admin" ? "Admin" : "Team view"}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {canSwitchRole && (
+          {isAdmin && (
             <span
               className="hidden items-center gap-2 border-2 border-black px-2.5 py-1.5 font-sans text-xs font-bold uppercase tracking-[0.12em] lg:inline-flex"
-              title={dbStatus?.configured ? "Neon PostgreSQL connected" : "Set DATABASE_URL to use Neon"}
+              title={
+                dbStatus?.unknown
+                  ? "Could not read database status"
+                  : dbStatus?.configured
+                  ? "Neon PostgreSQL connected"
+                  : "Set DATABASE_URL to use Neon"
+              }
             >
               <Icon name="database" className="h-4 w-4" />
-              {dbStatus?.configured ? `Neon ${dbStatus.latencyMs ?? 0}ms` : "Local store"}
+              {!dbStatus
+                ? "Checking…"
+                : dbStatus.unknown
+                ? "Status unknown"
+                : dbStatus.configured
+                ? `Neon ${dbStatus.latencyMs ?? 0}ms`
+                : "Local store"}
             </span>
           )}
 
@@ -201,13 +234,6 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({ staff, initialRole =
             </div>
           </div>
 
-          <Link
-            href="/"
-            aria-label="Back to the public site"
-            className="hidden h-10 w-10 items-center justify-center border-2 border-black transition-colors hover:bg-[#FBD227] sm:flex focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-black"
-          >
-            <Icon name="home" className="h-5 w-5" />
-          </Link>
           <button
             type="button"
             onClick={logout}
@@ -233,6 +259,7 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({ staff, initialRole =
 
         {/* Sidebar */}
         <aside
+          inert={!navOpen && !isDesktop}
           className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col justify-between overflow-y-auto border-r-2 border-black bg-black pt-16 text-[#999999] transition-transform md:static md:z-auto md:w-60 md:translate-x-0 md:pt-0 ${
             navOpen ? "translate-x-0" : "-translate-x-full"
           }`}
@@ -267,24 +294,28 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({ staff, initialRole =
         </aside>
 
         <main id="workspace" className="min-w-0 flex-1 overflow-y-auto bg-white">
-            {role === "team" ? (
+            {!dataReady ? (
+              <PageSkeleton />
+            ) : role === "team" ? (
               activeTab === "projects" ? (
                 <ProjectsTasksView
                   role="team"
+                  section="projects"
                   activeMember={activeTeamMember}
                   onMemberChange={setActiveTeamMember}
-                  lockMember={!canSwitchRole}
+                  lockMember
                 />
               ) : activeTab === "bookings" ? (
                 <BookingsView role="team" activeMember={activeTeamMember} />
               ) : activeTab === "library" ? (
-                <MediaLibraryView />
+                <MediaLibraryView role={role} />
               ) : (
                 <ProjectsTasksView
                   role="team"
+                  section="tasks"
                   activeMember={activeTeamMember}
                   onMemberChange={setActiveTeamMember}
-                  lockMember={!canSwitchRole}
+                  lockMember
                 />
               )
             ) : (
@@ -302,16 +333,18 @@ export const OperationsOS: React.FC<OperationsOSProps> = ({ staff, initialRole =
               ) : activeTab === "email" ? (
                 <BusinessEmailView />
               ) : activeTab === "library" ? (
-                <MediaLibraryView />
+                <MediaLibraryView role={role} />
               ) : activeTab === "projects" ? (
                 <ProjectsTasksView
                   role="admin"
+                  section="projects"
                   activeMember={activeTeamMember}
                   onMemberChange={setActiveTeamMember}
                 />
               ) : activeTab === "tasks" ? (
                 <ProjectsTasksView
                   role="admin"
+                  section="tasks"
                   activeMember={activeTeamMember}
                   onMemberChange={setActiveTeamMember}
                 />

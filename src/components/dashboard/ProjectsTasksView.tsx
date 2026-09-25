@@ -3,17 +3,28 @@
 import React, { useState } from "react";
 import { db, Project, Task } from "@/db";
 import { Icon } from "@/components/icons/Icon";
+import { fieldCompact } from "./ui";
 
 interface ProjectsTasksViewProps {
-  role?: "admin" | "team" | "client";
+  /** Which page to show. Projects lists client projects; tasks is the sprint board. */
+  section?: "projects" | "tasks";
+  role?: "admin" | "team";
   activeMember?: string;
   onMemberChange?: (member: string) => void;
   /** Team members cannot browse other people's boards. */
   lockMember?: boolean;
 }
 
+/** Whole-word match on the first name, so "Ren" never matches "Karen" or "Loren". */
+function matchesAssignee(assignee: string, who: string): boolean {
+  const tokens = (value: string) => value.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  const first = tokens(who)[0];
+  return Boolean(first) && tokens(assignee).includes(first);
+}
+
 export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
   role = "admin",
+  section = "tasks",
   activeMember = "Kai (Brand Lead)",
   onMemberChange,
   lockMember = false,
@@ -33,18 +44,13 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
   // If role is team, strictly scope to active member
   const currentAssignee = role === "team" ? activeMember : selectedFilterAssignee;
 
-  const filteredTasks = allTasks.filter((t) => {
-    if (currentAssignee === "all") return true;
-    return t.assignee.toLowerCase().includes(currentAssignee.split(" ")[0].toLowerCase());
-  });
+  const filteredTasks = allTasks.filter((t) => currentAssignee === "all" || matchesAssignee(t.assignee, currentAssignee));
 
+  // Team members see only projects they have a task on. No task, no project: scoping fails closed.
+  const memberProjectIds = new Set(filteredTasks.map((t) => t.projectId).filter(Boolean));
   const filteredProjects = allProjects.filter((p) => {
     if (role === "admin" || currentAssignee === "all") return true;
-    // Scoped projects based on team member assignment
-    if (currentAssignee.includes("Kai")) return p.title.includes("Tidewater");
-    if (currentAssignee.includes("Ren")) return p.title.includes("Tidewater");
-    if (currentAssignee.includes("Sora")) return p.title.includes("Meridian");
-    return true;
+    return memberProjectIds.has(p.id);
   });
 
   const taskStatuses = [
@@ -66,16 +72,32 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
               } animate-pulse`}
             />
             <span className="font-mono text-xs font-bold uppercase tracking-wider text-gray-500">
-              {role === "admin" ? "Studio Command • All Team Workloads" : "Delivery Floor • My Sprint Tasks"}
+              {role === "admin"
+                ? section === "projects"
+                  ? "Studio Command · Client Projects"
+                  : "Studio Command · All Team Workloads"
+                : section === "projects"
+                ? "Delivery Floor · My Projects"
+                : "Delivery Floor · My Sprint Tasks"}
             </span>
           </div>
           <h1 className="font-monument text-2xl sm:text-3xl font-black text-[#000000] tracking-tight mt-1">
-            {role === "admin" ? "AGENCY PROJECTS & TASK BOARD" : `SPRINT BOARD · ${activeMember.toUpperCase()}`}
+            {role === "admin"
+              ? section === "projects"
+                ? "CLIENT PROJECTS"
+                : "TEAM TASK BOARD"
+              : section === "projects"
+              ? `MY PROJECTS · ${activeMember.toUpperCase()}`
+              : `SPRINT BOARD · ${activeMember.toUpperCase()}`}
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
             {role === "admin"
-              ? "Full operational visibility across every active client deliverable, budget, and team task."
-              : "Showing sprint assignments and active projects specifically scoped to your team member account."}
+              ? section === "projects"
+                ? "Every client project with its phase, progress, budget, target date and open work."
+                : "Every task across the team. Filter by assignee and move tasks between lanes."
+              : section === "projects"
+              ? "The client projects you have tasks on."
+              : "Your assigned tasks. Move them between lanes as work progresses."}
           </p>
         </div>
 
@@ -89,9 +111,10 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
               <span className="font-mono text-xs font-bold text-gray-900 px-1">{activeMember}</span>
             ) : (
             <select
+              aria-label="Active team member"
               value={activeMember}
               onChange={(e) => onMemberChange && onMemberChange(e.target.value)}
-              className="font-mono text-xs border border-gray-300 rounded px-2 py-1 bg-gray-50 font-bold text-gray-900 focus:border-black focus:outline-none"
+              className={fieldCompact}
             >
               <option value="Kai (Brand Lead)">Kai (Brand Lead)</option>
               <option value="Ren (Frontend)">Ren (Frontend)</option>
@@ -99,7 +122,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
             </select>
             )}
           </div>
-        ) : (
+        ) : section === "tasks" ? (
           <div className="flex flex-wrap items-center gap-1.5 bg-gray-100 p-1 rounded-lg border border-gray-300 text-xs font-mono">
             <span className="text-[0.65rem] text-gray-500 uppercase px-2 font-bold">Assignee:</span>
             <button
@@ -139,7 +162,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
               Sora ({allTasks.filter((t) => t.assignee.includes("Sora")).length})
             </button>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Role Scoping Notice */}
@@ -154,7 +177,8 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
         </div>
       )}
 
-      {/* Projects Delivery Pulse Cards */}
+      {/* Projects */}
+      {section === "projects" && (
       <div>
         <h2 className="font-bold text-sm text-black mb-3 uppercase font-mono tracking-wider flex items-center justify-between">
           <span>{role === "team" ? "My Assigned Projects" : "All Client Projects"}</span>
@@ -162,7 +186,17 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
             {filteredProjects.length} active delivery pod{filteredProjects.length === 1 ? "" : "s"}
           </span>
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {role === "admin" && filteredProjects.length === 0 && (
+          <p className="mb-8 border border-gray-300 bg-gray-50 p-4 text-sm text-gray-700">
+            No projects yet. A project is created when a lead is moved to Won, or you can load demo data in Settings.
+          </p>
+        )}
+        {role === "team" && filteredProjects.length === 0 && filteredTasks.length === 0 && (
+          <p className="mb-8 border border-gray-300 bg-gray-50 p-4 text-sm text-gray-700">
+            Nothing is assigned to {activeMember} yet. Ask an admin to link your task-board profile in Staff and access.
+          </p>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
           {filteredProjects.map((proj) => (
             <div key={proj.id} className="border border-gray-300 bg-white p-5 rounded-lg shadow-2xs">
               <div className="flex items-center justify-between mb-3">
@@ -177,6 +211,11 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
               <h3 className="font-bold text-base text-black">{proj.title}</h3>
               <span className="text-xs text-gray-500 block mt-0.5 font-mono">Client: {proj.clientName}</span>
 
+              <p className="mt-2 font-mono text-xs text-gray-700">
+                {allTasks.filter((t) => t.projectId === proj.id && t.status !== "done").length} open of{" "}
+                {allTasks.filter((t) => t.projectId === proj.id).length} tasks
+              </p>
+
               <div className="mt-4 pt-3 border-t border-gray-100">
                 <div className="flex items-center justify-between text-xs font-mono mb-1.5">
                   <span className="text-gray-500">Milestone Progress</span>
@@ -185,7 +224,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
                 <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                   <div className="bg-[#FBD227] h-full" style={{ width: `${proj.progress}%` }} />
                 </div>
-                <div className="flex items-center justify-between text-[0.68rem] text-gray-400 font-mono mt-2">
+                <div className="flex items-center justify-between text-xs text-gray-600 font-mono mt-2">
                   <span>Target: {proj.targetDate}</span>
                   {role === "admin" && (
                     <span className="text-gray-700 font-bold">
@@ -198,8 +237,10 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
           ))}
         </div>
       </div>
+      )}
 
-      {/* Team Kanban Tasks Board */}
+      {/* Task board */}
+      {section === "tasks" && (
       <div>
         <h2 className="font-bold text-sm text-black mb-3 uppercase font-mono tracking-wider flex items-center justify-between">
           <span>{role === "team" ? "My Active Sprint Tasks" : "Master Delivery Task Board"}</span>
@@ -223,7 +264,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
 
                 <div className="space-y-3">
                   {colTasks.length === 0 ? (
-                    <p className="text-xs text-gray-400 text-center py-6 font-mono">No tasks in this lane</p>
+                    <p className="text-xs text-gray-600 text-center py-6 font-mono">No tasks in this lane</p>
                   ) : (
                     colTasks.map((t) => (
                       <div key={t.id} className="bg-white border border-gray-300 p-3.5 rounded shadow-2xs">
@@ -232,7 +273,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
                             {t.projectTitle}
                           </span>
                           <span
-                            className={`text-[0.62rem] font-mono font-bold px-1.5 py-0.5 rounded uppercase ${
+                            className={`text-xs font-mono font-bold px-1.5 py-0.5 rounded uppercase ${
                               t.priority === "urgent"
                                 ? "bg-rose-100 text-rose-800"
                                 : t.priority === "high"
@@ -253,11 +294,12 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
 
                         {/* Status Transition Control */}
                         <div className="mt-2 pt-2 border-t border-gray-50 flex items-center justify-between">
-                          <span className="text-[0.62rem] text-gray-400">Move lane:</span>
+                          <span className="text-xs text-gray-600">Move lane:</span>
                           <select
+                            aria-label={`Move task ${t.title}`}
                             value={t.status}
                             onChange={(e) => handleUpdateStatus(t.id, e.target.value as Task["status"])}
-                            className="text-[0.65rem] font-medium border border-gray-200 rounded px-1.5 py-0.5 bg-gray-50 text-black cursor-pointer focus:outline-none"
+                            className={fieldCompact}
                           >
                             <option value="todo">To Do</option>
                             <option value="in_progress">In Progress</option>
@@ -274,6 +316,7 @@ export const ProjectsTasksView: React.FC<ProjectsTasksViewProps> = ({
           })}
         </div>
       </div>
+      )}
     </div>
   );
 };

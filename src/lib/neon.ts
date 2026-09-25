@@ -12,6 +12,14 @@ export function getNeonSql() {
   return neon(process.env.DATABASE_URL!);
 }
 
+/** Inquiry detail columns added after the first release. Safe to run repeatedly. */
+export async function ensureOpportunityDetailColumns(sql: NonNullable<ReturnType<typeof getNeonSql>>) {
+  await sql`ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS phone VARCHAR(64);`;
+  await sql`ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS budget_bracket VARCHAR(128);`;
+  await sql`ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS message TEXT;`;
+  await sql`ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS deliverables JSONB DEFAULT '[]'::jsonb;`;
+}
+
 /**
  * Initializes the full agency database schema in Neon PostgreSQL
  */
@@ -66,6 +74,7 @@ export async function initNeonSchema() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
     `;
+    await ensureOpportunityDetailColumns(sql);
 
     // 3. Projects
     await sql`
@@ -208,31 +217,56 @@ export async function initNeonSchema() {
       );
     `;
 
-    // Seed default records if empty
-    await seedNeonIfEmpty(sql);
+    // No sample data is created here. A workspace starts with real data only. See seedNeonDemo.
 
     return {
       success: true,
       message: "Neon PostgreSQL tables verified & ready.",
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Neon initSchema error:", error);
     return {
       success: false,
-      message: error?.message || "Failed to initialize Neon schema.",
+      message: "Failed to initialize Neon schema. Check the server logs.",
     };
   }
 }
 
+type NeonSql = NonNullable<ReturnType<typeof getNeonSql>>;
+
 /**
- * Seeds initial demo data if clients table is empty
+ * Fixed ids of the sample rows. Real rows get random ids from uid(), so removal by these ids can never touch
+ * real data.
  */
-async function seedNeonIfEmpty(sql: any) {
-  try {
-    const existing = await sql`SELECT COUNT(*)::int as count FROM clients`;
-    if (existing && existing[0]?.count > 0) {
-      return; // Already has data
-    }
+export const NEON_DEMO_IDS = {
+  clients: ["cli-1", "cli-2"],
+  opportunities: ["opp-1", "opp-2", "opp-3"],
+  projects: ["proj-1", "proj-2"],
+  invoices: ["inv-1", "inv-2", "inv-3"],
+  bookings: ["book-1", "book-2"],
+} as const;
+
+/** True when any sample row is present. */
+export async function neonDemoLoaded(sql: NeonSql): Promise<boolean> {
+  const rows = await sql`SELECT 1 FROM clients WHERE id = ANY(${[...NEON_DEMO_IDS.clients]}) LIMIT 1`;
+  return rows.length > 0;
+}
+
+/** Deletes only the sample rows by their fixed ids, plus revision and approval state of the sample clients. */
+export async function clearNeonDemo(sql: NeonSql): Promise<void> {
+  const ids = NEON_DEMO_IDS;
+  await sql`DELETE FROM client_revisions WHERE client_id = ANY(${[...ids.clients]})`;
+  await sql`DELETE FROM client_approvals WHERE client_id = ANY(${[...ids.clients]})`;
+  await sql`DELETE FROM bookings WHERE id = ANY(${[...ids.bookings]})`;
+  await sql`DELETE FROM invoices WHERE id = ANY(${[...ids.invoices]})`;
+  await sql`DELETE FROM projects WHERE id = ANY(${[...ids.projects]})`;
+  await sql`DELETE FROM opportunities WHERE id = ANY(${[...ids.opportunities]})`;
+  await sql`DELETE FROM clients WHERE id = ANY(${[...ids.clients]})`;
+}
+
+/** Inserts the sample rows. Existing rows with the same ids are left alone. Throws on failure. */
+export async function seedNeonDemo(sql: NeonSql): Promise<void> {
+  {
 
     // Seed Clients. Demo access tokens are only seeded outside production.
     const demo = process.env.NODE_ENV !== "production";
@@ -284,7 +318,5 @@ async function seedNeonIfEmpty(sql: any) {
         ('book-2', 'Dr. Elena Vance', 'Meridian Clinic', 'elena@meridianhealth.org', 'Discovery Call (30 min)', '2026-09-25', '02:00 PM - 02:30 PM', 'Kai (Brand Lead)', 'https://meet.google.com/tvl-disc-8922', 'Confirmed', 'Review AI automation and intake patient journey map.')
       ON CONFLICT (id) DO NOTHING;
     `;
-  } catch (err) {
-    console.warn("Neon seed error (non-fatal):", err);
   }
 }

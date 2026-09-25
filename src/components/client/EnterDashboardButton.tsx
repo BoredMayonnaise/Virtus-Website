@@ -32,8 +32,9 @@ export function EnterDashboardButton({ token }: { token: string }) {
       setError(body?.error ?? "Something went wrong. Try again.");
     } catch {
       setError("Network error. Check your connection and try again.");
+    } finally {
+      setPending(false);
     }
-    setPending(false);
   };
 
   return (

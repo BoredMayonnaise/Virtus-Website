@@ -11,7 +11,9 @@ const GENERIC = "Email or password is incorrect.";
 export async function POST(request: Request) {
   let body: { email?: unknown; password?: unknown };
   try {
-    body = await request.json();
+    const parsed: unknown = await request.json();
+    if (!parsed || typeof parsed !== "object") throw new Error("bad body");
+    body = parsed as typeof body;
   } catch {
     return NextResponse.json({ ok: false, error: GENERIC }, { status: 400 });
   }
@@ -37,11 +39,19 @@ export async function POST(request: Request) {
     // Always run one hash comparison so response time does not reveal whether the account exists.
     const passwordOk = await verifyPassword(password, user?.passwordHash ?? (await dummyPasswordHash()));
 
-    if (!user || !passwordOk || user.status !== "active") {
+    if (!user || !passwordOk) {
       recordFailure(ipKey);
       recordFailure(emailKey);
-      await addAudit(email ?? "unknown", "login_failed", email ?? "unknown");
+      // Audit only real accounts so arbitrary emails cannot flood the log.
+      if (user) await addAudit(user.email, "login_failed", user.email);
       return NextResponse.json({ ok: false, error: GENERIC }, { status: 401 });
+    }
+    // Password was correct, so saying the account is disabled reveals nothing to an attacker.
+    if (user.status !== "active") {
+      return NextResponse.json(
+        { ok: false, error: "This account is disabled. Ask an admin to re-enable it." },
+        { status: 403 }
+      );
     }
 
     clearFailures(ipKey);

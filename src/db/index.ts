@@ -189,6 +189,27 @@ export interface ActivityItem {
 }
 
 // Global in-memory / persistent mock store
+/** Collision-safe id. Date.now() alone repeats when two records are created in the same millisecond. */
+export function uid(prefix: string): string {
+  const c = globalThis.crypto as Crypto | undefined;
+  const raw = c?.randomUUID ? c.randomUUID().replace(/-/g, "") : Math.random().toString(16).slice(2).padEnd(12, "0");
+  return `${prefix}-${raw.slice(0, 10)}`;
+}
+
+interface DemoSeed {
+  opportunities: Opportunity[];
+  clients: Client[];
+  projects: Project[];
+  tasks: Task[];
+  invoices: Invoice[];
+  bookings: Booking[];
+  mediaAssets: MediaAsset[];
+  activity: ActivityItem[];
+  proposals: Proposal[];
+  contracts: Contract[];
+  emails: EmailThread[];
+}
+
 class AgencyDatabase {
   private opportunities: Opportunity[] = [
     {
@@ -713,6 +734,102 @@ class AgencyDatabase {
     },
   ];
 
+  // Sample records for demos. The store starts EMPTY: everything above is the demo seed, captured here and
+  // cleared so a fresh workspace holds only real data. loadDemoData / clearDemoData move it in and out.
+  private demoSeed: DemoSeed;
+  private demoLoaded = false;
+
+  constructor() {
+    this.demoSeed = structuredClone({
+      opportunities: this.opportunities,
+      clients: this.clients,
+      projects: this.projects,
+      tasks: this.tasks,
+      invoices: this.invoices,
+      bookings: this.bookings,
+      mediaAssets: this.mediaAssets,
+      activity: this.activity,
+      proposals: this.proposals,
+      contracts: this.contracts,
+      emails: this.emails,
+    });
+    this.opportunities = [];
+    this.clients = [];
+    this.projects = [];
+    this.tasks = [];
+    this.invoices = [];
+    this.bookings = [];
+    this.mediaAssets = [];
+    this.activity = [];
+    this.proposals = [];
+    this.contracts = [];
+    this.emails = [];
+  }
+
+  public isDemoLoaded(): boolean {
+    return this.demoLoaded;
+  }
+
+  /** Adds the sample records. Skips any that are already present, so it is safe to call twice. */
+  public loadDemoData(): void {
+    const seed = structuredClone(this.demoSeed);
+    const merge = <T extends { id: string }>(current: T[], sample: T[]): T[] => [
+      ...current,
+      ...sample.filter((row) => !current.some((c) => c.id === row.id)),
+    ];
+    this.opportunities = merge(this.opportunities, seed.opportunities);
+    this.clients = merge(this.clients, seed.clients);
+    this.projects = merge(this.projects, seed.projects);
+    this.tasks = merge(this.tasks, seed.tasks);
+    this.invoices = merge(this.invoices, seed.invoices);
+    this.bookings = merge(this.bookings, seed.bookings);
+    this.mediaAssets = merge(this.mediaAssets, seed.mediaAssets);
+    this.activity = merge(this.activity, seed.activity);
+    this.proposals = merge(this.proposals, seed.proposals);
+    this.contracts = merge(this.contracts, seed.contracts);
+    this.emails = merge(this.emails, seed.emails);
+    this.demoLoaded = true;
+  }
+
+  /**
+   * Removes ONLY the sample records, matched by their fixed demo ids. Real records get random ids from uid(), so
+   * they can never match. Also drops revision and approval state that belongs to the sample clients.
+   */
+  public clearDemoData(): number {
+    const seed = this.demoSeed;
+    const ids = (rows: { id: string }[]) => new Set(rows.map((r) => r.id));
+    const drop = <T extends { id: string }>(current: T[], sample: { id: string }[]): T[] => {
+      const demo = ids(sample);
+      return current.filter((row) => !demo.has(row.id));
+    };
+    const before =
+      this.opportunities.length + this.clients.length + this.projects.length + this.tasks.length +
+      this.invoices.length + this.bookings.length + this.mediaAssets.length + this.activity.length +
+      this.proposals.length + this.contracts.length + this.emails.length;
+
+    const demoClientIds = ids(seed.clients);
+    this.opportunities = drop(this.opportunities, seed.opportunities);
+    this.clients = drop(this.clients, seed.clients);
+    this.projects = drop(this.projects, seed.projects);
+    this.tasks = drop(this.tasks, seed.tasks);
+    this.invoices = drop(this.invoices, seed.invoices);
+    this.bookings = drop(this.bookings, seed.bookings);
+    this.mediaAssets = drop(this.mediaAssets, seed.mediaAssets);
+    this.activity = drop(this.activity, seed.activity);
+    this.proposals = drop(this.proposals, seed.proposals);
+    this.contracts = drop(this.contracts, seed.contracts);
+    this.emails = drop(this.emails, seed.emails);
+    this.revisions = this.revisions.filter((r) => !demoClientIds.has(r.clientId));
+    for (const id of demoClientIds) delete this.approvals[id];
+    this.demoLoaded = false;
+
+    const after =
+      this.opportunities.length + this.clients.length + this.projects.length + this.tasks.length +
+      this.invoices.length + this.bookings.length + this.mediaAssets.length + this.activity.length +
+      this.proposals.length + this.contracts.length + this.emails.length;
+    return before - after;
+  }
+
   // Methods
   public getOverviewMetrics() {
     const pipelineValue = this.opportunities
@@ -753,13 +870,13 @@ class AgencyDatabase {
   public addOpportunity(opp: Omit<Opportunity, "id" | "createdAt">): Opportunity {
     const newOpp: Opportunity = {
       ...opp,
-      id: `opp-${Date.now()}`,
+      id: uid("opp"),
       createdAt: new Date().toISOString(),
     };
     this.opportunities.unshift(newOpp);
 
     this.activity.unshift({
-      id: `act-${Date.now()}`,
+      id: uid("act"),
       description: `New website brief received from ${opp.name} (${opp.company}) — $${opp.dealValue}`,
       category: "lead",
       timestamp: "Just now",
@@ -776,7 +893,7 @@ class AgencyDatabase {
     opp.stage = stage;
 
     this.activity.unshift({
-      id: `act-${Date.now()}`,
+      id: uid("act"),
       description: `Opportunity "${opp.company}" moved from ${oldStage} → ${stage}`,
       category: "lead",
       timestamp: "Just now",
@@ -784,7 +901,7 @@ class AgencyDatabase {
 
     // Auto-convert to Client & Project when marked "won"
     if (stage === "won" && oldStage !== "won") {
-      const newClientId = `cli-${Date.now()}`;
+      const newClientId = uid("cli");
       const newClient: Client = {
         id: newClientId,
         name: opp.name,
@@ -802,7 +919,7 @@ class AgencyDatabase {
       this.clients.unshift(newClient);
 
       const newProject: Project = {
-        id: `proj-${Date.now()}`,
+        id: uid("proj"),
         clientId: newClientId,
         clientName: opp.company,
         title: `${opp.company} - ${opp.recommendedTier} System`,
@@ -818,7 +935,7 @@ class AgencyDatabase {
       this.projects.unshift(newProject);
 
       this.activity.unshift({
-        id: `act-${Date.now() + 1}`,
+        id: uid("act"),
         description: `Client account & project created for ${opp.company}!`,
         category: "project",
         timestamp: "Just now",
@@ -853,13 +970,13 @@ class AgencyDatabase {
   public addMediaAsset(asset: Omit<MediaAsset, "id" | "createdAt">): MediaAsset {
     const newAsset: MediaAsset = {
       ...asset,
-      id: `med-${Date.now()}`,
+      id: uid("med"),
       createdAt: new Date().toISOString().split("T")[0],
     };
     this.mediaAssets.unshift(newAsset);
 
     this.activity.unshift({
-      id: `act-${Date.now()}`,
+      id: uid("act"),
       description: `Asset uploaded: ${asset.filename} (${asset.fileSize})`,
       category: "media",
       timestamp: "Just now",
@@ -898,18 +1015,21 @@ class AgencyDatabase {
     return this.revisions.filter((r) => r.clientId === clientId);
   }
 
-  public addRevision(ticket: Omit<RevisionTicket, "id" | "round" | "submittedAt">): RevisionTicket {
-    const round = this.getRevisions(ticket.clientId).length + 1;
+  public addRevision(
+    ticket: Omit<RevisionTicket, "id" | "round" | "submittedAt">,
+    assigned?: { id: string; round: number }
+  ): RevisionTicket {
+    const round = assigned?.round ?? this.getRevisions(ticket.clientId).length + 1;
     const created: RevisionTicket = {
       ...ticket,
-      id: `REV-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+      id: assigned?.id ?? uid(`REV-${new Date().getFullYear()}`).toUpperCase(),
       round,
       submittedAt: new Date().toISOString(),
     };
     this.revisions.unshift(created);
     this.approvals[ticket.clientId] = "changes_requested";
     this.activity.unshift({
-      id: `act-${Date.now()}`,
+      id: uid("act"),
       description: `Revision round ${round} requested by ${ticket.submittedBy} (${created.id})`,
       category: "milestone",
       timestamp: "Just now",
@@ -924,7 +1044,7 @@ class AgencyDatabase {
   public setApproval(clientId: string, status: ApprovalStatus): ApprovalStatus {
     this.approvals[clientId] = status;
     this.activity.unshift({
-      id: `act-${Date.now()}`,
+      id: uid("act"),
       description: `Deliverable approval set to "${status}" by client ${clientId}`,
       category: "milestone",
       timestamp: "Just now",
@@ -943,13 +1063,13 @@ class AgencyDatabase {
   public addBooking(booking: Omit<Booking, "id" | "createdAt">): Booking {
     const newBooking: Booking = {
       ...booking,
-      id: `book-${Date.now()}`,
+      id: uid("book"),
       createdAt: new Date().toISOString().split("T")[0],
     };
     this.bookings.unshift(newBooking);
 
     this.activity.unshift({
-      id: `act-${Date.now()}`,
+      id: uid("act"),
       description: `New booking scheduled: ${newBooking.bookingType} with ${newBooking.clientName} (${newBooking.company})`,
       category: "milestone",
       timestamp: "Just now",
@@ -970,7 +1090,7 @@ class AgencyDatabase {
   ): Client {
     const newClient: Client = {
       ...client,
-      id: `cli-${Date.now()}`,
+      id: uid("cli"),
       portalTokenRevokedAt: null,
       totalRevenue: 0,
       activeProjectsCount: 0,
@@ -978,7 +1098,7 @@ class AgencyDatabase {
     };
     this.clients.unshift(newClient);
     this.activity.unshift({
-      id: `act-${Date.now()}`,
+      id: uid("act"),
       description: `New client added: ${newClient.name} (${newClient.company})`,
       category: "lead",
       timestamp: "Just now",
@@ -986,14 +1106,28 @@ class AgencyDatabase {
     return newClient;
   }
 
+  public markInvoicePaid(id: string): Invoice | null {
+    const inv = this.invoices.find((i) => i.id === id);
+    if (!inv || inv.status === "Paid") return inv ?? null;
+    inv.status = "Paid";
+    inv.paidAt = new Date().toISOString().slice(0, 10);
+    this.activity.unshift({
+      id: uid("act"),
+      description: `Invoice paid: ${inv.invoiceNumber} (${inv.clientName})`,
+      category: "invoice",
+      timestamp: "Just now",
+    });
+    return inv;
+  }
+
   public addInvoice(invoice: Omit<Invoice, "id">): Invoice {
     const newInvoice: Invoice = {
       ...invoice,
-      id: `inv-${Date.now()}`,
+      id: uid("inv"),
     };
     this.invoices.unshift(newInvoice);
     this.activity.unshift({
-      id: `act-${Date.now()}`,
+      id: uid("act"),
       description: `Invoice issued: ${newInvoice.invoiceNumber} for $${newInvoice.amount.toLocaleString()} to ${newInvoice.clientName}`,
       category: "invoice",
       timestamp: "Just now",
@@ -1008,12 +1142,12 @@ class AgencyDatabase {
   public addProposal(prop: Omit<Proposal, "id" | "createdAt">): Proposal {
     const newProp: Proposal = {
       ...prop,
-      id: `prop-${Date.now()}`,
+      id: uid("prop"),
       createdAt: new Date().toISOString().split("T")[0],
     };
     this.proposals.unshift(newProp);
     this.activity.unshift({
-      id: `act-${Date.now()}`,
+      id: uid("act"),
       description: `Proposal generated: ${newProp.proposalNumber} (${newProp.title}) for $${newProp.amount.toLocaleString()}`,
       category: "proposal",
       timestamp: "Just now",
@@ -1035,12 +1169,12 @@ class AgencyDatabase {
   public addContract(cont: Omit<Contract, "id" | "createdAt">): Contract {
     const newCont: Contract = {
       ...cont,
-      id: `cont-${Date.now()}`,
+      id: uid("cont"),
       createdAt: new Date().toISOString().split("T")[0],
     };
     this.contracts.unshift(newCont);
     this.activity.unshift({
-      id: `act-${Date.now()}`,
+      id: uid("act"),
       description: `Contract drafted: ${newCont.contractNumber} (${newCont.title})`,
       category: "contract",
       timestamp: "Just now",
@@ -1056,7 +1190,7 @@ class AgencyDatabase {
     c.signerEmail = signerEmail;
     c.signedAt = `${new Date().toISOString().replace("T", " ").substring(0, 16)} UTC`;
     this.activity.unshift({
-      id: `act-${Date.now()}`,
+      id: uid("act"),
       description: `Contract executed & e-signed: ${c.contractNumber} by ${signerName}`,
       category: "contract",
       timestamp: "Just now",
@@ -1071,7 +1205,7 @@ class AgencyDatabase {
   public sendEmail(email: Omit<EmailThread, "id" | "timestamp" | "isRead">): EmailThread {
     const newEmail: EmailThread = {
       ...email,
-      id: `mail-${Date.now()}`,
+      id: uid("mail"),
       timestamp: "Just now",
       isRead: true,
     };
@@ -1086,7 +1220,7 @@ class AgencyDatabase {
   public addTeamMember(member: Omit<TeamMemberUser, "id">): TeamMemberUser {
     const newMember: TeamMemberUser = {
       ...member,
-      id: `user-${Date.now()}`,
+      id: uid("user"),
     };
     this.teamMembers.push(newMember);
     return newMember;

@@ -10,10 +10,19 @@ const buckets = globalForLimit.__rateBuckets ?? (globalForLimit.__rateBuckets = 
 
 export const LOGIN_MAX_FAILURES = 5;
 export const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const MAX_BUCKETS = 5000;
 
+/**
+ * Caller IP. Prefers headers the platform sets itself (Vercel), then the last
+ * x-forwarded-for hop, which the nearest proxy appends. The first hop is
+ * client-controlled and must not be trusted.
+ */
 export function clientIp(request: Request): string {
+  const platform = request.headers.get("x-vercel-forwarded-for") ?? request.headers.get("x-real-ip");
+  if (platform) return platform.split(",")[0].trim();
   const forwarded = request.headers.get("x-forwarded-for");
-  return (forwarded?.split(",")[0] ?? request.headers.get("x-real-ip") ?? "unknown").trim();
+  const hops = forwarded?.split(",").map((h) => h.trim()).filter(Boolean) ?? [];
+  return hops[hops.length - 1] ?? "unknown";
 }
 
 function live(key: string): Bucket | undefined {
@@ -35,7 +44,15 @@ export function recordFailure(key: string, windowMs: number = LOGIN_WINDOW_MS): 
     bucket.count += 1;
     return;
   }
-  if (buckets.size > 5000) buckets.clear(); // hard cap against memory growth
+  if (buckets.size >= MAX_BUCKETS) {
+    // Drop the oldest entries only. Clearing everything would let an attacker flush every lockout.
+    const drop = Math.ceil(MAX_BUCKETS / 10);
+    let i = 0;
+    for (const k of buckets.keys()) {
+      buckets.delete(k);
+      if (++i >= drop) break;
+    }
+  }
   buckets.set(key, { count: 1, resetAt: Date.now() + windowMs });
 }
 

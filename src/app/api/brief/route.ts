@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { calculateAgencyQuote } from "@/lib/quotationEngine";
+import { clientIp, isBlocked, recordFailure } from "@/lib/rateLimit";
 import {
   CONTACTS,
   LIMITS,
@@ -59,7 +60,19 @@ function optionalText(value: unknown, max: number, tooLong: string, errors: Fiel
   return text || undefined;
 }
 
+let detailColumnsReady: Promise<void> | null = null;
+
 export async function POST(request: Request) {
+  // Public endpoint: cap submissions per IP so the admin Leads list cannot be flooded.
+  const ipKey = `brief:${clientIp(request)}`;
+  if (isBlocked(ipKey, 10)) {
+    return NextResponse.json(
+      { ok: false, error: { code: "RATE_LIMITED", message: "Too many submissions. Please try again later." } },
+      { status: 429, headers: { "Retry-After": "3600" } }
+    );
+  }
+  recordFailure(ipKey, 60 * 60 * 1000);
+
   const contentType = request.headers.get("content-type") ?? "";
   if (!contentType.toLowerCase().startsWith("application/json")) {
     return failure(415, "UNSUPPORTED_MEDIA_TYPE", "Send the inquiry as application/json.");
@@ -186,12 +199,18 @@ export async function POST(request: Request) {
     });
     opportunityId = opportunity.id;
 
-    const { isNeonConfigured, getNeonSql } = await import("@/lib/neon");
+    const { isNeonConfigured, getNeonSql, ensureOpportunityDetailColumns } = await import("@/lib/neon");
     if (isNeonConfigured()) {
       const sql = getNeonSql();
       if (!sql) throw new Error("Neon is configured but no SQL client is available.");
+      // Older databases predate the detail columns. Add them once per instance.
+      detailColumnsReady ??= ensureOpportunityDetailColumns(sql).catch((err) => {
+        detailColumnsReady = null;
+        throw err;
+      });
+      await detailColumnsReady;
       await sql`
-        INSERT INTO opportunities (id, name, company, email, stage, deal_value, recommended_tier, needs, timeline)
+        INSERT INTO opportunities (id, name, company, email, stage, deal_value, recommended_tier, needs, timeline, phone, budget_bracket, message, deliverables)
         VALUES (
           ${opportunity.id},
           ${opportunity.name},
@@ -201,7 +220,11 @@ export async function POST(request: Request) {
           ${opportunity.dealValue},
           ${opportunity.recommendedTier},
           ${JSON.stringify(opportunity.needs)},
-          ${opportunity.timeline}
+          ${opportunity.timeline},
+          ${opportunity.phone ?? null},
+          ${opportunity.budgetBracket},
+          ${opportunity.message ?? null},
+          ${JSON.stringify(opportunity.deliverables ?? [])}::jsonb
         )
         ON CONFLICT (id) DO NOTHING;
       `;

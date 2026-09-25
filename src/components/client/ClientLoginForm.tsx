@@ -5,11 +5,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 interface ClientLoginFormProps {
-  /** True when the visitor arrived from a /track link that did not resolve. */
-  linkFailed?: boolean;
+  /** Why the visitor landed here: a /track link that did not resolve, an ended session, or a service problem. */
+  reason?: "link" | "expired" | "unavailable";
 }
 
-export function ClientLoginForm({ linkFailed = false }: ClientLoginFormProps) {
+const REASON_COPY = {
+  link: "That link did not work. It may have expired. Log in with your access key below, or start a project with us.",
+  expired: "Your session ended. Log in again with your access key to continue.",
+  unavailable: "The dashboard is temporarily unavailable. Try again in a moment.",
+} as const;
+
+export function ClientLoginForm({ reason }: ClientLoginFormProps) {
   const router = useRouter();
   const inputId = useId();
   const [token, setToken] = useState("");
@@ -51,12 +57,12 @@ export function ClientLoginForm({ linkFailed = false }: ClientLoginFormProps) {
         Log <span className="text-[#FBD227]">in.</span>
       </h1>
 
-      {linkFailed && (
+      {reason && (
         <p
           role="status"
           className="mt-6 border-l-4 border-[#FBD227] bg-[#1C1C1C] px-4 py-3 font-sans text-base leading-[1.5]"
         >
-          That link did not work. It may have expired. Log in with your access key below, or start a project with us.
+          {REASON_COPY[reason]}
         </p>
       )}
 
@@ -100,7 +106,7 @@ export function ClientLoginForm({ linkFailed = false }: ClientLoginFormProps) {
             href="/#brief"
             className="border-2 border-white/30 px-6 py-3 text-center font-sans text-eyebrow font-bold uppercase text-white transition-colors hover:border-[#FBD227] hover:text-[#FBD227] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-4 focus-visible:outline-[#FBD227]"
           >
-            Start a project ↗
+            Start a project
           </Link>
         </div>
       </form>

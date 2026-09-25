@@ -74,7 +74,7 @@ export default function ErrorBoundary({
 
       {/* Footer */}
       <footer className="border-t border-white/10 px-6 py-4 text-center font-sans text-xs text-gray-500">
-        Virtus Operations OS · Automatic Self-Healing Active
+        Virtus Operations OS
       </footer>
     </div>
   );

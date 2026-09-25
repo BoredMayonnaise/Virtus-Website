@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { regenerateClientToken } from "@/lib/clientPortal";
+import { PortalUnavailableError, regenerateClientToken } from "@/lib/clientPortal";
 import { denyUnlessStaff } from "@/lib/staffAuth";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +10,13 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   if (denied) return denied;
 
   const { id } = await params;
-  const issued = await regenerateClientToken(id);
+  let issued;
+  try {
+    issued = await regenerateClientToken(id);
+  } catch (err) {
+    if (err instanceof PortalUnavailableError) return NextResponse.json({ ok: false, error: err.message }, { status: 503 });
+    throw err;
+  }
   if (!issued) return NextResponse.json({ ok: false, error: "Client not found" }, { status: 404 });
   return NextResponse.json({
     ok: true,

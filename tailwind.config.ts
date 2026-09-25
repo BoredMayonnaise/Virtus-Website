@@ -84,6 +84,15 @@ const config: Config = {
         ],
         "body-lg": ["1.375rem", { lineHeight: "1.5" }],
       },
+      keyframes: {
+        "fade-up": {
+          "0%": { opacity: "0", transform: "translateY(14px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        "fade-up": "fade-up 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both",
+      },
       fontFamily: {
         display: ["var(--font-display)", "Arial Black", "Arial", "sans-serif"],
         monument: ["var(--font-monument)", "Arial Black", "Arial", "sans-serif"],

@@ -17,7 +17,6 @@ export default async function AdminPage() {
   return (
     <StaffPortal
       staff={{ name: staff.name, email: staff.email, role: staff.role, memberLabel: staff.memberLabel }}
-      initialRole="admin"
     />
   );
 }

@@ -28,7 +28,7 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
             YOUR COMMAND CENTER
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
-            Live signals from the Team7641 workspace, with every metric sourced from Neon.
+            Summary of leads, projects, invoices and activity in this workspace. Figures come from the workspace store and are not saved between reloads unless the database is connected.
           </p>
         </div>
 
@@ -71,11 +71,8 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
             <span className="font-mono text-2xl font-black text-black">
               ${metrics.pipelineValue.toLocaleString()}
             </span>
-            <span className="font-mono text-[0.65rem] font-bold text-emerald-600 tracking-wider">
-              ↗ LIVE
-            </span>
           </div>
-          <span className="text-[0.72rem] text-gray-400 mt-1 block">
+          <span className="text-xs text-gray-600 mt-1 block">
             from open leads
           </span>
         </div>
@@ -92,11 +89,8 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
             <span className="font-mono text-2xl font-black text-black">
               {metrics.openLeadsCount}
             </span>
-            <span className="font-mono text-[0.65rem] font-bold text-emerald-600 tracking-wider">
-              ↗ LIVE
-            </span>
           </div>
-          <span className="text-[0.72rem] text-gray-400 mt-1 block">
+          <span className="text-xs text-gray-600 mt-1 block">
             workspace records
           </span>
         </div>
@@ -113,11 +107,8 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
             <span className="font-mono text-2xl font-black text-black">
               {metrics.activeProjectsCount}
             </span>
-            <span className="font-mono text-[0.65rem] font-bold text-emerald-600 tracking-wider">
-              ↗ LIVE
-            </span>
           </div>
-          <span className="text-[0.72rem] text-gray-400 mt-1 block">
+          <span className="text-xs text-gray-600 mt-1 block">
             delivery portfolio
           </span>
         </div>
@@ -134,11 +125,8 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
             <span className="font-mono text-2xl font-black text-black">
               ${metrics.collectedTotal.toLocaleString()}
             </span>
-            <span className="font-mono text-[0.65rem] font-bold text-emerald-600 tracking-wider">
-              ↗ LIVE
-            </span>
           </div>
-          <span className="text-[0.72rem] text-gray-400 mt-1 block">
+          <span className="text-xs text-gray-600 mt-1 block">
             paid invoices
           </span>
         </div>
@@ -165,7 +153,7 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
             </div>
 
             {metrics.deliveryPulse.length === 0 ? (
-              <p className="text-xs text-gray-400 py-6">No active projects yet.</p>
+              <p className="text-xs text-gray-600 py-6">No active projects yet.</p>
             ) : (
               <div className="space-y-4 pt-2">
                 {metrics.deliveryPulse.map((proj) => (
@@ -173,7 +161,7 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
                     <div className="flex items-center justify-between mb-2">
                       <div>
                         <span className="text-xs font-bold text-black">{proj.clientName}</span>
-                        <span className="text-[0.7rem] text-gray-500 ml-2">({proj.title})</span>
+                        <span className="text-xs text-gray-500 ml-2">({proj.title})</span>
                       </div>
                       <span className="font-mono text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">
                         {proj.riskLevel}
@@ -214,10 +202,10 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
             </div>
 
             {metrics.focusTasks.length === 0 ? (
-              <p className="text-xs text-gray-400 py-6">No tasks yet.</p>
+              <p className="text-xs text-gray-600 py-6">No tasks yet.</p>
             ) : (
               <div className="space-y-2.5">
-                {metrics.focusTasks.map((t) => (
+                {metrics.focusTasks.slice(0, 5).map((t) => (
                   <div
                     key={t.id}
                     className="flex items-center justify-between border-b border-gray-100 pb-2.5 last:border-b-0"
@@ -227,8 +215,8 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
                       <span className="text-xs font-medium text-black">{t.title}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[0.65rem] font-mono text-gray-500">{t.assignee}</span>
-                      <span className="text-[0.65rem] font-mono font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800">
+                      <span className="text-xs font-mono text-gray-500">{t.assignee}</span>
+                      <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800">
                         {t.priority}
                       </span>
                     </div>
@@ -267,18 +255,22 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
                 >
                   <div>
                     <span className="font-bold text-gray-900 block">{book.clientName}</span>
-                    <span className="text-[0.68rem] text-gray-500 font-mono">
+                    <span className="text-xs text-gray-500 font-mono">
                       {book.date} • {book.time}
                     </span>
                   </div>
-                  <a
-                    href={book.meetingUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-mono text-[0.65rem] font-bold px-2 py-1 rounded bg-[#1C1C1C] text-white hover:bg-[#FBD227] hover:text-black transition-colors shrink-0"
-                  >
-                    Join
-                  </a>
+                  {/^https:\/\//i.test(book.meetingUrl) ? (
+                    <a
+                      href={book.meetingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-xs font-bold px-2 py-1 rounded bg-[#1C1C1C] text-white hover:bg-[#FBD227] hover:text-black transition-colors shrink-0"
+                    >
+                      Join
+                    </a>
+                  ) : (
+                    <span className="font-mono text-xs text-gray-600 shrink-0">No link</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -295,13 +287,13 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
             </div>
 
             {metrics.recentActivity.length === 0 ? (
-              <p className="text-xs text-gray-400 py-6">No activity recorded yet.</p>
+              <p className="text-xs text-gray-600 py-6">No activity recorded yet.</p>
             ) : (
               <div className="space-y-3">
-                {metrics.recentActivity.map((act) => (
+                {metrics.recentActivity.slice(0, 8).map((act) => (
                   <div key={act.id} className="text-xs border-l-2 border-gray-300 pl-3 py-1">
                     <p className="text-gray-800 font-medium">{act.description}</p>
-                    <span className="text-[0.65rem] text-gray-400 font-mono mt-0.5 block">
+                    <span className="text-xs text-gray-600 font-mono mt-0.5 block">
                       {act.timestamp}
                     </span>
                   </div>
@@ -312,7 +304,7 @@ export const CommandCenterOverview: React.FC<OverviewProps> = ({ onNavigate }) =
 
           {/* Staging Status Card (Warm Yellow Tinted from Image 2) */}
           <div className="border border-[#FCDB52] bg-[#FCDB52] p-6 rounded shadow-sm">
-            <span className="font-mono text-[0.68rem] font-bold uppercase tracking-wider text-amber-700 block mb-2">
+            <span className="font-mono text-xs font-bold uppercase tracking-wider text-amber-700 block mb-2">
               STAGING STATUS
             </span>
             <h4 className="font-sans text-base font-bold text-black">

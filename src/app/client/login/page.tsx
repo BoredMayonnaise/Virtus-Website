@@ -1,5 +1,7 @@
 import { AuthShell } from "@/components/client/AuthShell";
+import { redirect } from "next/navigation";
 import { ClientLoginForm } from "@/components/client/ClientLoginForm";
+import { getClientSessionId } from "@/lib/clientSession";
 
 export const dynamic = "force-dynamic";
 
@@ -14,12 +16,16 @@ export default async function ClientLoginPage({
 }: {
   searchParams: Promise<{ reason?: string | string[] }>;
 }) {
+  // Already signed in: skip the form.
+  if (await getClientSessionId()) redirect("/client");
+
   const params = await searchParams;
-  const reason = Array.isArray(params.reason) ? params.reason[0] : params.reason;
+  const raw = Array.isArray(params.reason) ? params.reason[0] : params.reason;
+  const reason = raw === "link" || raw === "expired" || raw === "unavailable" ? raw : undefined;
 
   return (
     <AuthShell footerLabel="The Virtus Labs · Client login">
-      <ClientLoginForm linkFailed={reason === "link"} />
+      <ClientLoginForm reason={reason} />
     </AuthShell>
   );
 }

@@ -32,8 +32,8 @@ interface RevisionDialogProps {
 }
 
 const fieldClass =
-  "w-full border-2 border-black bg-white px-3 py-2.5 font-sans text-base text-black focus:border-black focus:outline-none focus:ring-2 focus:ring-[#FBD227]";
-const labelClass = "mb-2 block font-sans text-eyebrow font-bold uppercase text-black";
+  "w-full border border-white/25 bg-[#111111] px-3 py-2.5 font-sans text-base text-white placeholder-[#8A8A8A] focus:border-[#FBD227] focus:outline-none focus:ring-2 focus:ring-[#FBD227]/40";
+const labelClass = "mb-2 block font-sans text-eyebrow font-bold uppercase text-[#D4D4D4]";
 
 export function RevisionDialog({ open, onClose, onSubmitted }: RevisionDialogProps) {
   const uid = useId();
@@ -51,9 +51,23 @@ export function RevisionDialog({ open, onClose, onSubmitted }: RevisionDialogPro
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
+    if (open && !dialog.open) {
+      dialog.showModal();
+      dialog.querySelector<HTMLTextAreaElement>("textarea")?.focus();
+    }
     if (!open && dialog.open) dialog.close();
   }, [open]);
+
+  const reset = () => {
+    setCategories([CATEGORIES[0]]);
+    setTargetArea(TARGET_AREAS[0]);
+    setPriority("important");
+    setDetails("");
+    setReferenceUrl("");
+    setAttachments([]);
+    setAttachmentName("");
+    setError(null);
+  };
 
   const toggleCategory = (category: string) =>
     setCategories((current) =>
@@ -88,7 +102,7 @@ export function RevisionDialog({ open, onClose, onSubmitted }: RevisionDialogPro
         body: JSON.stringify({ categories, targetArea, priority, details, referenceUrl, attachments }),
       });
       if (res.status === 401) {
-        window.location.assign("/client/login");
+        window.location.assign("/client/login?reason=expired");
         return;
       }
       const body = await res.json().catch(() => null);
@@ -97,9 +111,7 @@ export function RevisionDialog({ open, onClose, onSubmitted }: RevisionDialogPro
         return;
       }
       onSubmitted(body.data as RevisionTicket);
-      setDetails("");
-      setReferenceUrl("");
-      setAttachments([]);
+      reset();
     } catch {
       setError("Network error. Check your connection and try again.");
     } finally {
@@ -111,19 +123,23 @@ export function RevisionDialog({ open, onClose, onSubmitted }: RevisionDialogPro
     <dialog
       ref={ref}
       onClose={onClose}
+      onClick={(e) => {
+        // Backdrop click: the click target is the dialog element itself, not its form.
+        if (e.target === e.currentTarget) onClose();
+      }}
       aria-labelledby={`${uid}-title`}
-      className="m-auto w-[calc(100%-2rem)] max-w-2xl border-4 border-[#FBD227] bg-white p-0 text-black backdrop:bg-black/80"
+      className="m-auto w-[calc(100%-2rem)] max-w-2xl border border-white/20 bg-[#0F0F0F] p-0 text-white [color-scheme:dark] shadow-2xl backdrop:bg-black/80 backdrop:backdrop-blur-sm"
     >
       <form onSubmit={submit} noValidate>
-        <div className="flex items-center justify-between border-b-2 border-black px-5 py-4 sm:px-8">
-          <h2 id={`${uid}-title`} className="font-monument text-xl font-bold uppercase">
+        <div className="flex items-center justify-between border-b border-white/15 px-5 py-4 sm:px-8">
+          <h2 id={`${uid}-title`} className="font-monument text-xl font-bold uppercase text-white">
             Request changes
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="flex h-10 w-10 items-center justify-center border-2 border-black bg-[#FBD227] font-bold text-black hover:bg-black hover:text-[#FBD227] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-black"
+            className="flex h-10 w-10 items-center justify-center border border-white/25 text-white hover:border-[#FBD227] hover:text-[#FBD227] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#FBD227]"
           >
             <Icon name="close" className="h-4 w-4" />
           </button>
@@ -141,8 +157,8 @@ export function RevisionDialog({ open, onClose, onSubmitted }: RevisionDialogPro
                     type="button"
                     aria-pressed={selected}
                     onClick={() => toggleCategory(category)}
-                    className={`border-2 border-black px-3 py-2 font-sans text-sm font-bold ${
-                      selected ? "bg-black text-white" : "bg-white text-black hover:bg-[#FBD227]"
+                    className={`border border-white/25 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#FBD227] px-3 py-2 font-sans text-sm font-bold ${
+                      selected ? "border-[#FBD227] bg-[#FBD227] text-black" : "bg-transparent text-white hover:border-[#FBD227] hover:text-[#FBD227]"
                     }`}
                   >
                     {category}
@@ -177,8 +193,8 @@ export function RevisionDialog({ open, onClose, onSubmitted }: RevisionDialogPro
                     type="button"
                     aria-pressed={priority === p.value}
                     onClick={() => setPriority(p.value)}
-                    className={`flex-1 border-2 border-black px-2 py-2.5 font-sans text-sm font-bold ${
-                      priority === p.value ? "bg-black text-white" : "bg-white text-black hover:bg-[#FBD227]"
+                    className={`flex-1 border border-white/25 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#FBD227] px-2 py-2.5 font-sans text-sm font-bold ${
+                      priority === p.value ? "border-[#FBD227] bg-[#FBD227] text-black" : "bg-transparent text-white hover:border-[#FBD227] hover:text-[#FBD227]"
                     }`}
                   >
                     {p.label}
@@ -238,7 +254,7 @@ export function RevisionDialog({ open, onClose, onSubmitted }: RevisionDialogPro
               <button
                 type="button"
                 onClick={addAttachment}
-                className="border-2 border-black bg-black px-4 font-sans text-eyebrow font-bold uppercase text-white hover:bg-[#FBD227] hover:text-black"
+                className="border border-white/25 px-4 font-sans text-eyebrow font-bold uppercase text-white hover:border-[#FBD227] hover:text-[#FBD227] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#FBD227]"
               >
                 Add
               </button>
@@ -246,13 +262,13 @@ export function RevisionDialog({ open, onClose, onSubmitted }: RevisionDialogPro
             {attachments.length > 0 && (
               <ul className="mt-3 flex flex-wrap gap-2">
                 {attachments.map((name, index) => (
-                  <li key={`${name}-${index}`} className="flex items-center gap-2 border-2 border-black px-2 py-1 font-sans text-sm">
+                  <li key={`${name}-${index}`} className="flex items-center gap-2 border border-white/25 px-2 py-1 font-sans text-sm text-white">
                     {name}
                     <button
                       type="button"
                       aria-label={`Remove ${name}`}
                       onClick={() => setAttachments((c) => c.filter((_, i) => i !== index))}
-                      className="font-bold hover:underline"
+                      className="font-bold hover:underline focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#FBD227]"
                     >
                       <Icon name="close" className="h-4 w-4" />
                     </button>
@@ -260,30 +276,30 @@ export function RevisionDialog({ open, onClose, onSubmitted }: RevisionDialogPro
                 ))}
               </ul>
             )}
-            <p className="mt-2 font-sans text-sm text-[#333333]">
+            <p className="mt-2 font-sans text-sm text-[#A3A3A3]">
               File names only. Your account lead will ask you to share the files by email.
             </p>
           </div>
 
           {error && (
-            <p role="alert" className="border-l-4 border-[#DD7230] bg-[#F8E3D6] px-4 py-3 font-sans text-base font-semibold text-black">
+            <p role="alert" className="border-l-4 border-[#DD7230] bg-[#DD7230]/15 px-4 py-3 font-sans text-base font-semibold text-white">
               {error}
             </p>
           )}
         </div>
 
-        <div className="flex flex-col-reverse gap-3 border-t-2 border-black px-5 py-4 sm:flex-row sm:justify-end sm:px-8">
+        <div className="flex flex-col-reverse gap-3 border-t border-white/15 px-5 py-4 sm:flex-row sm:justify-end sm:px-8">
           <button
             type="button"
             onClick={onClose}
-            className="border-2 border-black px-6 py-3 font-sans text-eyebrow font-bold uppercase text-black hover:bg-black hover:text-white"
+            className="border-2 border-white/25 px-6 py-3 font-sans text-eyebrow font-bold uppercase text-white hover:border-[#FBD227] hover:text-[#FBD227] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#FBD227]"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={pending}
-            className="border-2 border-black bg-[#FBD227] px-6 py-3 font-sans text-eyebrow font-bold uppercase text-black hover:bg-black hover:text-[#FBD227] disabled:opacity-60"
+            className="border-2 border-[#FBD227] bg-[#FBD227] px-6 py-3 font-sans text-eyebrow font-bold uppercase text-black hover:bg-transparent hover:text-[#FBD227] disabled:opacity-60 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#FBD227]"
           >
             {pending ? "Sending…" : "Send request"}
           </button>

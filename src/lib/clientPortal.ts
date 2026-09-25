@@ -1,6 +1,7 @@
-import { db } from "@/db";
+import { db, uid } from "@/db";
 import type { ApprovalStatus, Client, RevisionTicket } from "@/db";
 import { isNeonConfigured, getNeonSql } from "@/lib/neon";
+import { getDemoAccess } from "@/lib/settingsStore";
 import { PORTAL_TOKEN_PATTERN, hashToken, issuePortalToken, type IssuedToken } from "@/lib/tokens";
 
 const DEMO_CLIENT_IDS = new Set(["cli-1", "cli-2"]);
@@ -14,6 +15,17 @@ export interface PortalClient {
 }
 
 const TV_LENGTH = 16;
+
+/** Neon is the source of truth whenever it is configured. Local memory is only for development without a database. */
+function neonSql() {
+  return isNeonConfigured() ? getNeonSql() : null;
+}
+
+export class PortalUnavailableError extends Error {
+  constructor(message = "The portal is temporarily unavailable. Try again shortly.") {
+    super(message);
+  }
+}
 
 export interface PortalProject {
   title: string;
@@ -79,9 +91,9 @@ const iso = (value: unknown): string | undefined => {
 };
 const day = (value: unknown): string => iso(value)?.slice(0, 10) ?? "";
 
-function tokenUsable({ id, expiresAt, revokedAt }: TokenState): boolean {
+function tokenUsable({ id, expiresAt, revokedAt }: TokenState, demoAccess: boolean): boolean {
   // Seeded demo accounts must never be reachable in production.
-  if (DEMO_CLIENT_IDS.has(id) && process.env.NODE_ENV === "production" && process.env.ALLOW_DEMO_ACCESS !== "true") {
+  if (DEMO_CLIENT_IDS.has(id) && process.env.NODE_ENV === "production" && !demoAccess) {
     return false;
   }
   if (revokedAt) return false;
@@ -93,29 +105,31 @@ function tokenUsable({ id, expiresAt, revokedAt }: TokenState): boolean {
 export async function findClientByToken(token: string | undefined | null): Promise<PortalClient | null> {
   if (!token || !PORTAL_TOKEN_PATTERN.test(token)) return null;
   const hash = await hashToken(token);
+  const demoAccess = await getDemoAccess();
 
-  if (isNeonConfigured()) {
+  const sql = neonSql();
+  if (sql) {
     try {
-      const sql = getNeonSql();
-      if (sql) {
-        const rows = await sql`
-          SELECT id, name, company, portal_token_expires_at as "expiresAt", portal_token_revoked_at as "revokedAt"
-          FROM clients WHERE portal_token_hash = ${hash} LIMIT 1;
-        `;
-        if (rows[0]) {
-          return tokenUsable(rows[0] as TokenState)
-            ? { id: rows[0].id, name: rows[0].name, company: rows[0].company, tv: hash.slice(0, TV_LENGTH) }
-            : null;
-        }
-      }
+      const rows = await sql`
+        SELECT id, name, company, portal_token_expires_at as "expiresAt", portal_token_revoked_at as "revokedAt"
+        FROM clients WHERE portal_token_hash = ${hash} LIMIT 1;
+      `;
+      const row = rows[0];
+      if (!row) return null;
+      const state: TokenState = { id: row.id, expiresAt: row.expiresAt, revokedAt: row.revokedAt };
+      return tokenUsable(state, demoAccess)
+        ? { id: row.id, name: row.name, company: row.company, tv: hash.slice(0, TV_LENGTH) }
+        : null;
     } catch (err) {
-      console.warn("Neon token lookup failed, using local store:", err);
+      // Fail closed. A stale local copy must never accept a token Neon may have revoked.
+      console.error("Neon token lookup failed:", err);
+      return null;
     }
   }
 
   const client = db.getClientByTokenHash(hash);
   if (!client) return null;
-  return tokenUsable({ id: client.id, expiresAt: client.portalTokenExpiresAt, revokedAt: client.portalTokenRevokedAt })
+  return tokenUsable({ id: client.id, expiresAt: client.portalTokenExpiresAt, revokedAt: client.portalTokenRevokedAt }, demoAccess)
     ? { id: client.id, name: client.name, company: client.company, tv: hash.slice(0, TV_LENGTH) }
     : null;
 }
@@ -123,25 +137,27 @@ export async function findClientByToken(token: string | undefined | null): Promi
 /** Re-checks on every authenticated request so revoking or regenerating a token ends live sessions. */
 export async function isClientActive(clientId: string, tv: string | undefined): Promise<boolean> {
   if (!tv) return false;
-  if (isNeonConfigured()) {
+  const demoAccess = await getDemoAccess();
+  const sql = neonSql();
+  if (sql) {
     try {
-      const sql = getNeonSql();
-      if (sql) {
-        const rows = await sql`
-          SELECT id, portal_token_hash as "hash", portal_token_expires_at as "expiresAt", portal_token_revoked_at as "revokedAt"
-          FROM clients WHERE id = ${clientId} LIMIT 1;
-        `;
-        if (rows[0]) return String(rows[0].hash ?? "").startsWith(tv) && tokenUsable(rows[0] as TokenState);
-      }
+      const rows = await sql`
+        SELECT id, portal_token_hash as "hash", portal_token_expires_at as "expiresAt", portal_token_revoked_at as "revokedAt"
+        FROM clients WHERE id = ${clientId} LIMIT 1;
+      `;
+      const row = rows[0];
+      if (!row) return false;
+      return String(row.hash ?? "").startsWith(tv) && tokenUsable({ id: row.id, expiresAt: row.expiresAt, revokedAt: row.revokedAt }, demoAccess);
     } catch (err) {
-      console.warn("Neon client status lookup failed, using local store:", err);
+      console.error("Neon client status lookup failed:", err);
+      return false;
     }
   }
   const client = db.getClientById(clientId);
   return Boolean(
     client &&
       client.portalTokenHash?.startsWith(tv) &&
-      tokenUsable({ id: client.id, expiresAt: client.portalTokenExpiresAt, revokedAt: client.portalTokenRevokedAt })
+      tokenUsable({ id: client.id, expiresAt: client.portalTokenExpiresAt, revokedAt: client.portalTokenRevokedAt }, demoAccess)
   );
 }
 
@@ -197,7 +213,10 @@ function localData(client: Client): ClientPortalData {
 }
 
 function withDeliverables(data: ClientPortalData, clientId: string): ClientPortalData {
-  data.deliverables = db.getMediaAssets(clientId).map((m) => ({
+  data.deliverables = db
+    .getMediaAssets(clientId)
+    .filter((m) => m.category === "Deliverables")
+    .map((m) => ({
     id: m.id,
     title: m.title,
     filename: m.filename,
@@ -212,9 +231,9 @@ function withDeliverables(data: ClientPortalData, clientId: string): ClientPorta
 
 /** Everything the client dashboard shows, scoped to one client. Never includes other clients or internal data. */
 export async function getClientPortalData(clientId: string): Promise<ClientPortalData | null> {
-  if (isNeonConfigured()) {
+  {
+    const sql = neonSql();
     try {
-      const sql = getNeonSql();
       if (sql) {
         const clients = await sql`
           SELECT id, name, contact_name as "contactName", company, email FROM clients WHERE id = ${clientId} LIMIT 1;
@@ -282,9 +301,11 @@ export async function getClientPortalData(clientId: string): Promise<ClientPorta
             clientId
           );
         }
+        return null;
       }
     } catch (err) {
-      console.warn("Neon client portal lookup failed, using local store:", err);
+      console.error("Neon client portal lookup failed:", err);
+      throw new PortalUnavailableError();
     }
   }
 
@@ -292,72 +313,73 @@ export async function getClientPortalData(clientId: string): Promise<ClientPorta
   return client ? withDeliverables(localData(client), clientId) : null;
 }
 
-/** Persists a revision request (local store plus Neon when configured). */
+/** Persists a revision request. With Neon configured, a failed write throws instead of reporting success. */
 export async function saveRevision(
   input: Omit<RevisionTicket, "id" | "round" | "submittedAt">
 ): Promise<RevisionTicket> {
-  const ticket = db.addRevision(input);
-  if (isNeonConfigured()) {
-    try {
-      const sql = getNeonSql();
-      if (sql) {
-        await sql`
-          INSERT INTO client_revisions (id, client_id, round, categories, target_area, priority, details, reference_url, attachments, submitted_by, submitted_email)
-          VALUES (${ticket.id}, ${ticket.clientId}, ${ticket.round}, ${JSON.stringify(ticket.categories)}::jsonb, ${ticket.targetArea}, ${ticket.priority}, ${ticket.details}, ${ticket.referenceUrl}, ${JSON.stringify(ticket.attachments)}::jsonb, ${ticket.submittedBy}, ${ticket.submittedEmail})
-          ON CONFLICT (id) DO NOTHING;
-        `;
-        await sql`
-          INSERT INTO client_approvals (client_id, status, updated_at) VALUES (${ticket.clientId}, 'changes_requested', NOW())
-          ON CONFLICT (client_id) DO UPDATE SET status = 'changes_requested', updated_at = NOW();
-        `;
-      }
-    } catch (err) {
-      console.warn("Neon revision insert error (non-fatal):", err);
-    }
+  const sql = neonSql();
+  if (!sql) return db.addRevision(input);
+
+  const id = uid(`REV-${new Date().getFullYear()}`).toUpperCase();
+  try {
+    const rows = await sql`
+      INSERT INTO client_revisions (id, client_id, round, categories, target_area, priority, details, reference_url, attachments, submitted_by, submitted_email)
+      VALUES (${id}, ${input.clientId},
+              (SELECT COALESCE(MAX(round), 0) + 1 FROM client_revisions WHERE client_id = ${input.clientId}),
+              ${JSON.stringify(input.categories)}::jsonb, ${input.targetArea}, ${input.priority}, ${input.details},
+              ${input.referenceUrl}, ${JSON.stringify(input.attachments)}::jsonb, ${input.submittedBy}, ${input.submittedEmail})
+      RETURNING round, created_at as "submittedAt";
+    `;
+    await sql`
+      INSERT INTO client_approvals (client_id, status, updated_at) VALUES (${input.clientId}, 'changes_requested', NOW())
+      ON CONFLICT (client_id) DO UPDATE SET status = 'changes_requested', updated_at = NOW();
+    `;
+    const round = Number(rows[0]?.round ?? 1);
+    // Mirror into the local store so the staff activity feed on this instance stays in step.
+    return { ...db.addRevision(input, { id, round }), submittedAt: iso(rows[0]?.submittedAt) ?? new Date().toISOString() };
+  } catch (err) {
+    console.error("Neon revision insert error:", err);
+    throw new PortalUnavailableError("We could not save your request. Please try again.");
   }
-  return ticket;
 }
 
 export async function saveApproval(clientId: string, status: ApprovalStatus): Promise<ApprovalStatus> {
-  db.setApproval(clientId, status);
-  if (isNeonConfigured()) {
-    try {
-      const sql = getNeonSql();
-      if (sql) {
-        await sql`
-          INSERT INTO client_approvals (client_id, status, updated_at) VALUES (${clientId}, ${status}, NOW())
-          ON CONFLICT (client_id) DO UPDATE SET status = ${status}, updated_at = NOW();
-        `;
-      }
-    } catch (err) {
-      console.warn("Neon approval upsert error (non-fatal):", err);
-    }
+  const sql = neonSql();
+  if (!sql) return db.setApproval(clientId, status);
+  try {
+    await sql`
+      INSERT INTO client_approvals (client_id, status, updated_at) VALUES (${clientId}, ${status}, NOW())
+      ON CONFLICT (client_id) DO UPDATE SET status = ${status}, updated_at = NOW();
+    `;
+  } catch (err) {
+    console.error("Neon approval upsert error:", err);
+    throw new PortalUnavailableError("We could not save your approval. Please try again.");
   }
-  return status;
+  return db.setApproval(clientId, status);
 }
 
 /** Issues a new token for a client. The previous token stops working immediately. Returns plaintext once. */
 export async function regenerateClientToken(clientId: string): Promise<IssuedToken | null> {
-  if (!db.getClientById(clientId) && !isNeonConfigured()) return null;
+  const sql = neonSql();
   const issued = await issuePortalToken();
-  const local = db.setClientToken(clientId, { hash: issued.hash, last4: issued.last4, expiresAt: issued.expiresAt });
 
-  let updated = Boolean(local);
-  if (isNeonConfigured()) {
+  if (sql) {
     try {
-      const sql = getNeonSql();
-      if (sql) {
-        const rows = await sql`
-          UPDATE clients
-          SET portal_token_hash = ${issued.hash}, portal_token_last4 = ${issued.last4},
-              portal_token_expires_at = ${issued.expiresAt}, portal_token_revoked_at = NULL
-          WHERE id = ${clientId} RETURNING id;
-        `;
-        updated = updated || rows.length > 0;
-      }
+      const rows = await sql`
+        UPDATE clients
+        SET portal_token_hash = ${issued.hash}, portal_token_last4 = ${issued.last4},
+            portal_token_expires_at = ${issued.expiresAt}, portal_token_revoked_at = NULL
+        WHERE id = ${clientId} RETURNING id;
+      `;
+      if (rows.length === 0) return null;
     } catch (err) {
-      console.warn("Neon token update error (non-fatal):", err);
+      // Never hand out a token that was not stored.
+      console.error("Neon token update error:", err);
+      throw new PortalUnavailableError("Could not store the new link. Try again.");
     }
+    db.setClientToken(clientId, { hash: issued.hash, last4: issued.last4, expiresAt: issued.expiresAt });
+    return issued;
   }
-  return updated ? issued : null;
+
+  return db.setClientToken(clientId, { hash: issued.hash, last4: issued.last4, expiresAt: issued.expiresAt }) ? issued : null;
 }

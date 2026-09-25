@@ -19,13 +19,18 @@ export function StaffResetForm() {
     const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, "")).get("token");
     const fromQuery = new URLSearchParams(window.location.search).get("token");
     const found = fromHash ?? fromQuery ?? "";
-    setToken(found);
-    if (found) window.history.replaceState(null, "", window.location.pathname);
+    // Only overwrite when a token was found. React StrictMode runs this twice in dev, and the second run
+    // sees the already-cleaned URL.
+    if (found) {
+      setToken(found);
+      window.history.replaceState(null, "", window.location.pathname);
+    }
   }, []);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (pending) return;
+    if (password.length < 12) return setError("Use at least 12 characters for your password.");
     if (password !== confirm) return setError("Passwords do not match.");
     setPending(true);
     setError(null);
@@ -74,7 +79,10 @@ export function StaffResetForm() {
               Open the reset link an admin sent you. This page needs that link.
             </p>
           )}
-          <PasswordField id={`${uid}-password`} label="New password" value={password} onChange={setPassword} autoComplete="new-password" />
+          <PasswordField id={`${uid}-password`} label="New password" value={password} onChange={setPassword} autoComplete="new-password" describedBy={`${uid}-hint`} />
+          <p id={`${uid}-hint`} className="-mt-2 font-sans text-sm text-[#999999]">
+            At least 12 characters, mixing two of: lowercase, uppercase, numbers, symbols.
+          </p>
           <PasswordField id={`${uid}-confirm`} label="Confirm password" value={confirm} onChange={setConfirm} autoComplete="new-password" />
           {error && (
             <p role="alert" className={authError}>

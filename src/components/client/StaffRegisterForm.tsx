@@ -31,6 +31,7 @@ export function StaffRegisterForm() {
   const [lockedEmail, setLockedEmail] = useState(false);
   const [inviteRole, setInviteRole] = useState<string | null>(null);
   const [inviteBad, setInviteBad] = useState(false);
+  const [inviteNotice, setInviteNotice] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<{ message: string; field?: FieldName } | null>(null);
 
@@ -44,8 +45,10 @@ export function StaffRegisterForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ invite: found.invite }),
       })
-        .then((r) => r.json())
-        .then((body) => {
+        .then(async (r) => ({ status: r.status, body: await r.json().catch(() => null) }))
+        .then(({ status, body }) => {
+          if (status === 429) return setInviteNotice("Too many attempts. Wait a little, then reload this page.");
+          if (status >= 500) return setInviteNotice("Could not check your invitation right now. Reload to try again.");
           if (!body?.ok) return setInviteBad(true);
           setInviteRole(body.data.role);
           if (body.data.email) {
@@ -53,16 +56,21 @@ export function StaffRegisterForm() {
             setLockedEmail(true);
           }
         })
-        .catch(() => undefined);
+        .catch(() => setInviteNotice("Could not check your invitation. Check your connection and reload."));
     }
   }, []);
 
   const hasInvite = Boolean(invite) && !inviteBad;
-  const showCodeField = !hasInvite && !code;
+  // Keep the field visible (prefilled) when the code was rejected, so it can be corrected.
+  const showCodeField = !hasInvite && (!code || error?.field === "code");
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (pending) return;
+    if (password.length < 12) {
+      setError({ message: "Use at least 12 characters for your password.", field: "password" });
+      return;
+    }
     if (password !== confirm) {
       setError({ message: "Passwords do not match.", field: "password" });
       return;
@@ -105,8 +113,16 @@ export function StaffRegisterForm() {
         {inviteRole ? ` You are joining as ${inviteRole === "admin" ? "an admin" : "a team member"}.` : ""}
       </p>
 
+      {inviteNotice && (
+        <p role="alert" className={`${authError} mt-6`}>
+          <Icon name="alert" className="mt-0.5 h-5 w-5 text-[#DD7230]" />
+          {inviteNotice}
+        </p>
+      )}
+
       {inviteBad && (
-        <p role="status" className={`${authError} mt-6`}>
+        // An invalid invite is an error, so announce it assertively.
+        <p role="alert" className={`${authError} mt-6`}>
           <Icon name="alert" className="mt-0.5 h-5 w-5 text-[#DD7230]" />
           That invitation link is invalid or has expired. Ask an admin for a new one, or enter a code below.
         </p>
